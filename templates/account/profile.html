@@ -1,0 +1,202 @@
+{% extends '../header.html' %}
+{% load static %}
+{% block main %}
+<div class="flex flex-col items-center justify-center px-6 py-8 mx-auto min-h-screen mt-[-50px]">
+  <div class="w-full bg-white rounded-2xl shadow-xl dark:border md:mt-0 sm:max-w-2xl xl:p-0 dark:bg-gray-800 dark:border-gray-700">
+    <div class="p-8 space-y-6">
+      <div class="flex items-center justify-between mb-8">
+        <h1 class="text-2xl font-bold leading-tight tracking-tight text-gray-900 dark:text-white">
+          My Profile
+        </h1>
+        <div class="text-sm text-gray-500">
+          Member since {{ request.user.date_joined|date:"F Y" }}
+        </div>
+      </div>
+
+      <div class="max-w-xl mx-auto">
+        <!-- Profile Image Section -->
+        <div class="flex flex-col items-center mb-8">
+          <div class="relative group">
+            {% if request.user.profile.image %}
+              <img src="{{ request.user.profile.image.url }}" class="w-32 h-32 rounded-full object-cover ring-4 ring-teal-50" alt="Profile Picture">
+            {% else %}
+              <div class="w-32 h-32 rounded-full bg-teal-50 flex items-center justify-center ring-4 ring-teal-100">
+                <i class="fas fa-user text-5xl text-teal-600"></i>
+              </div>
+            {% endif %}
+            <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <label for="image-upload" class="cursor-pointer">
+                <div class="w-32 h-32 rounded-full bg-black bg-opacity-50 flex items-center justify-center">
+                  <i class="fas fa-camera text-2xl text-white"></i>
+                </div>
+              </label>
+            </div>
+          </div>
+          <p class="mt-2 text-sm text-gray-500">Click to update profile picture</p>
+        </div>
+
+        <!-- Profile Form -->
+        <form action="" method="post" enctype="multipart/form-data" class="space-y-6">
+          {% csrf_token %}
+          <input type="file" id="image-upload" name="image" class="hidden" accept="image/*" onchange="previewImage(this)">
+          
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <!-- First Name -->
+            <div>
+              <label for="{{ form.first_name.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                First Name
+              </label>
+              {{ form.first_name }}
+              {% for error in form.first_name.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+              {% endfor %}
+            </div>
+
+            <!-- Last Name -->
+            <div>
+              <label for="{{ form.last_name.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Last Name
+              </label>
+              {{ form.last_name }}
+              {% for error in form.last_name.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+              {% endfor %}
+            </div>
+
+            <!-- Phone Number -->
+            <div>
+              <label for="{{ form.phone_number.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                Phone Number
+              </label>
+              {{ form.phone_number }}
+              {% for error in form.phone_number.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+              {% endfor %}
+            </div>
+
+            <!-- City -->
+            <div>
+              <label for="{{ form.city.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                City
+              </label>
+              {{ form.city }}
+              {% for error in form.city.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+              {% endfor %}
+            </div>
+          </div>
+
+          <!-- Address -->
+          <div>
+            <label for="{{ form.address.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Address
+            </label>
+            {{ form.address }}
+            {% for error in form.address.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+            {% endfor %}
+          </div>
+
+          <!-- Profile Link -->
+          <div>
+            <label for="{{ form.profile_link.id_for_label }}" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Profile Link
+            </label>
+            <div class="flex items-center space-x-2">
+              {{ form.profile_link }}
+              <button type="button" onclick="copyProfileLink()" class="px-3 py-2 text-sm font-medium text-teal-600 hover:text-teal-700">
+                <i class="fas fa-copy"></i>
+              </button>
+            </div>
+            {% for error in form.profile_link.errors %}
+              <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+            {% endfor %}
+          </div>
+
+          <!-- Submit Button -->
+          <div class="flex items-center justify-between pt-6">
+            <button type="submit" class="px-6 py-3 text-white bg-teal-600 rounded-lg hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition-colors duration-200">
+              Save Changes
+            </button>
+            
+            <div class="flex space-x-4">
+              <a href="/accounts/password/change" class="text-sm text-teal-600 hover:text-teal-700 flex items-center">
+                <i class="fas fa-key mr-2"></i>
+                Change Password
+              </a>
+              <a href="/accounts/email" class="text-sm text-teal-600 hover:text-teal-700 flex items-center">
+                <i class="fas fa-envelope mr-2"></i>
+                Manage Emails
+              </a>
+            </div>
+          </div>
+        </form>
+
+        <!-- Account Stats -->
+        <div class="mt-8 pt-6 border-t border-gray-200">
+          <div class="grid grid-cols-2 gap-4">
+            <div class="bg-gray-50 rounded-lg p-4">
+              <p class="text-sm text-gray-500">Last Login</p>
+              <p class="font-medium">{{ request.user.last_login|date:"F j, Y" }}</p>
+            </div>
+            <div class="bg-gray-50 rounded-lg p-4">
+              <p class="text-sm text-gray-500">Email Status</p>
+              <p class="font-medium">{{ request.user.email }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function copyProfileLink() {
+    const profileLink = window.location.origin + '/profile/' + '{{ form.profile_link.value }}';
+    navigator.clipboard.writeText(profileLink).then(() => {
+        // Show success message
+        const toast = document.createElement('div');
+        toast.className = 'fixed bottom-4 right-4 bg-teal-600 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+        toast.textContent = 'Profile link copied to clipboard!';
+        document.body.appendChild(toast);
+        setTimeout(() => toast.remove(), 3000);
+    }).catch(err => {
+        console.error('Failed to copy text: ', err);
+    });
+}
+
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const profileImage = document.querySelector('.rounded-full');
+            if (profileImage.tagName === 'IMG') {
+                profileImage.src = e.target.result;
+            } else {
+                // If it's the default icon div, replace it with an image
+                const newImage = document.createElement('img');
+                newImage.src = e.target.result;
+                newImage.className = 'w-32 h-32 rounded-full object-cover ring-4 ring-teal-50';
+                newImage.alt = 'Profile Picture';
+                profileImage.parentNode.replaceChild(newImage, profileImage);
+            }
+        }
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// Add input styling
+document.addEventListener('DOMContentLoaded', function() {
+    const inputs = document.querySelectorAll('input[type="text"], input[type="tel"], textarea');
+    inputs.forEach(input => {
+        input.className = 'w-full px-4 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200';
+    });
+    
+    const textarea = document.querySelector('textarea');
+    if (textarea) {
+        textarea.className = 'w-full px-4 py-2.5 text-gray-700 bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200';
+        textarea.rows = 4;
+    }
+});
+</script>
+{% endblock %}

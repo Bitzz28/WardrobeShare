@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-purple-400 via-pink-400 to-red-400 py-8">
+    <div class="container mx-auto px-4">
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <div class="md:flex">
+                <!-- Product Image -->
+                <div class="md:w-1/2">
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="w-full h-96 object-cover">
+                </div>
+                
+                <!-- Product Details -->
+                <div class="md:w-1/2 p-6">
+                    <h1 class="text-3xl font-bold mb-4">{{ product.name }}</h1>
+                    
+                    <div class="mb-4">
+                        <span class="text-2xl font-bold text-purple-600">₹{{ product.rental_price }}/day</span>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h2 class="text-lg font-semibold mb-2">Description</h2>
+                        <p class="text-gray-600">{{ product.description }}</p>
+                    </div>
+                    
+                    <div class="mb-6">
+                        <h2 class="text-lg font-semibold mb-2">Details</h2>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-gray-600"><strong>Category:</strong> {{ product.category }}</p>
+                                <p class="text-gray-600"><strong>Size:</strong> {{ product.size }}</p>
+                                <p class="text-gray-600"><strong>Brand:</strong> {{ product.brand }}</p>
+                            </div>
+                            <div>
+                                <p class="text-gray-600"><strong>Condition:</strong> {{ product.condition }}</p>
+                                <p class="text-gray-600"><strong>Location:</strong> {{ product.location }}</p>
+                                <p class="text-gray-600"><strong>Available Until:</strong> {{ product.period|date:"M d, Y" }}</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    {% if user != product.user %}
+                    <div class="flex space-x-4">
+                        <a href="{% url 'create_order' product.id %}" class="bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600 flex-grow text-center">
+                            Rent Now
+                        </a>
+                        <button onclick="toggleWishlist({{ product.id }})" class="border border-purple-500 text-purple-500 px-4 py-3 rounded-lg hover:bg-purple-50">
+                            <i class="fas {% if is_wishlisted %}fa-heart{% else %}fa-heart-o{% endif %}"></i>
+                        </button>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function toggleWishlist(productId) {
+    fetch(`/wishlist/toggle/${productId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            const heartIcon = document.querySelector('button i');
+            if (data.status === 'added') {
+                heartIcon.classList.remove('fa-heart-o');
+                heartIcon.classList.add('fa-heart');
+            } else {
+                heartIcon.classList.remove('fa-heart');
+                heartIcon.classList.add('fa-heart-o');
+            }
+        }
+    });
+}
+</script>
+{% endblock %} 

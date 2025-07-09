@@ -1,0 +1,264 @@
+{% extends 'header.html' %}
+{% load static %}
+{% block main %}
+<div class="container mx-auto my-8 p-6 bg-white rounded-lg shadow-lg dark:bg-gray-800" id="invoice">
+    <div class="flex flex-col md:flex-row justify-between items-start">
+        <div class="mb-4 md:mb-0">
+            <h1 class="text-2xl font-bold text-gray-900 dark:text-white">Invoice</h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Order ID: {{ i.order_id }}</p>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Order Date: {{ i.order_date }}</p>
+        </div>
+        <div class="text-right">
+            <h2 class="text-lg font-semibold text-gray-900 dark:text-white">Wardrobe Share</h2>
+            <p class="text-sm text-gray-500 dark:text-gray-400">eCommerce ID: {{ i.ecommerce_id }}</p>
+        </div>
+    </div>
+
+    <hr class="my-6 border-gray-200 dark:border-gray-700">
+    {%if "Courier" in i.delivery_type%}
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-6">
+        <div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Estimated Delivery Date</h3>
+            <p class="text-gray-700 dark:text-gray-300">{{ i.delivery_date }}</p>
+            {% if refund %}
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white mt-4">Return Date</h3>
+            <p class="text-gray-700 dark:text-gray-300">{{ returndate }}</p>
+            {% endif %}
+        </div>
+        <div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Shipping Address</h3>
+            <p class="text-gray-700 dark:text-gray-300">{{ i.full_name }}</p>
+            <p class="text-gray-700 dark:text-gray-300">{{ i.address }}</p>
+            <p class="text-gray-700 dark:text-gray-300">{{ i.pin_code }}</p>
+        </div>
+        <div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Contact</h3>
+            <p class="text-gray-700 dark:text-gray-300"> T: {{ i.mobile_no }}</p>
+            <p class="text-gray-700 dark:text-gray-300">{{ i.alternate_no }}</p>
+        </div>
+    </div>
+    {%endif%}
+    
+
+    <div class="mb-6">
+        <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-4">Order Status</h2>
+        <ol class="relative border-l border-gray-200 dark:border-gray-700">
+            <li class="mb-10 ml-6">
+                <span
+                    class="absolute flex items-center justify-center w-6 h-6 bg-gray-200 rounded-full -left-3 ring-8 ring-white dark:ring-gray-900 dark:bg-gray-700">
+                    <i class="fa fa-check text-gray-500 dark:text-gray-400"></i>
+                </span>
+                <time class="mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">Ordered</time>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Order Placed</h3>
+            </li>
+            {% if confirmed or shipping or shipped or outfordelivery or delivered or returned or refunded or refundcancel %}
+            <li class="mb-10 ml-6">
+                <span
+                    class="absolute flex items-center justify-center w-6 h-6 bg-blue-500 rounded-full -left-3 ring-8 ring-white dark:ring-gray-900 dark:bg-blue-700">
+                    <i class="fa fa-clipboard-check text-white"></i>
+                </span>
+                <time class="mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">Order
+                    Confirmed</time>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Order Confirmed</h3>
+            </li>
+            {% endif %}
+            {% if shipping or shipped or outfordelivery or delivered or returned or refunded or refundcancel %}
+            <li class="mb-10 ml-6">
+                <span
+                    class="absolute flex items-center justify-center w-6 h-6 bg-blue-500 rounded-full -left-3 ring-8 ring-white dark:ring-gray-900 dark:bg-blue-700">
+                    <i class="fa fa-truck-plane text-white"></i>
+                </span>
+                <time class="mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">Shipping</time>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Order Shipped</h3>
+            </li>
+            {% endif %}
+            {% if shipped or outfordelivery or delivered or returned or refunded or refundcancel %}
+            <li class="mb-10 ml-6">
+                <span
+                    class="absolute flex items-center justify-center w-6 h-6 bg-blue-500 rounded-full -left-3 ring-8 ring-white dark:ring-gray-900 dark:bg-blue-700">
+                    <i class="fa fa-dolly text-white"></i>
+                </span>
+                <time class="mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">Shipped</time>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Order Shipped</h3>
+            </li>
+            {% endif %}
+            {% if outfordelivery or delivered or returned or refunded or refundcancel %}
+            <li class="mb-10 ml-6">
+                <span
+                    class="absolute flex items-center justify-center w-6 h-6 bg-blue-500 rounded-full -left-3 ring-8 ring-white dark:ring-gray-900 dark:bg-blue-700">
+                    <i class="fa fa-truck text-white"></i>
+                </span>
+                <time class="mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">Out for
+                    Delivery</time>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Out for Delivery</h3>
+            </li>
+            {% endif %}
+            {% if delivered or returned or refunded or refundcancel %}
+            <li class="mb-10 ml-6">
+                <span
+                    class="absolute flex items-center justify-center w-6 h-6 bg-blue-500 rounded-full -left-3 ring-8 ring-white dark:ring-gray-900 dark:bg-blue-700">
+                    <i class="fa fa-house text-white"></i>
+                </span>
+                <time class="mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">Delivered</time>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Delivered</h3>
+            </li>
+            {% endif %}
+            {% if returned or refunded or refundcancel %}
+            <li class="mb-10 ml-6">
+                <span
+                    class="absolute flex items-center justify-center w-6 h-6 bg-yellow-400 rounded-full -left-3 ring-8 ring-white dark:ring-gray-900 dark:bg-yellow-600">
+                    <i class="fa fa-rotate-left text-white"></i>
+                </span>
+                <time class="mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">Returned</time>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Returned</h3>
+            </li>
+            {% endif %}
+            {% if refunded %}
+            <li class="mb-10 ml-6">
+                <span
+                    class="absolute flex items-center justify-center w-6 h-6 bg-green-500 rounded-full -left-3 ring-8 ring-white dark:ring-gray-900 dark:bg-green-700">
+                    <i class="fa fa-sack-dollar text-white"></i>
+                </span>
+                <time class="mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">Refunded</time>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Refunded</h3>
+            </li>
+            {% endif %}
+            {% if refundcancel %}
+            <li class="mb-10 ml-6">
+                <span
+                    class="absolute flex items-center justify-center w-6 h-6 bg-red-500 rounded-full -left-3 ring-8 ring-white dark:ring-gray-900 dark:bg-red-700">
+                    <i class="fa fa-ban text-white"></i>
+                </span>
+                <time class="mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">Refund
+                    Cancelled</time>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Refund Cancelled</h3>
+            </li>
+            {% endif %}
+            {% if cancelled %}
+            <li class="mb-10 ml-6">
+                <span
+                    class="absolute flex items-center justify-center w-6 h-6 bg-red-500 rounded-full -left-3 ring-8 ring-white dark:ring-gray-900 dark:bg-red-700">
+                    <i class="fa fa-ban text-white"></i>
+                </span>
+                <time class="mb-1 text-sm font-normal leading-none text-gray-400 dark:text-gray-500">Cancelled</time>
+                <h3 class="text-lg font-semibold text-gray-900 dark:text-white">Order Cancelled</h3>
+            </li>
+            {% endif %}
+        </ol>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+            <thead class="border-b dark:border-neutral-500 bg-gray-50 dark:bg-gray-700">
+                <tr>
+                    <th scope="col" class="px-6 py-4 font-medium text-gray-900 dark:text-white">Item</th>
+                    <th scope="col" class="px-6 py-4 font-medium text-gray-900 dark:text-white">Price</th>
+                    <th scope="col" class="px-6 py-4 font-medium text-gray-900 dark:text-white">Quantity</th>
+                    <th scope="col" class="px-6 py-4 font-medium text-gray-900 dark:text-white">Subtotal</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr class="border-b dark:border-neutral-500">
+                    <td class="px-6 py-4 text-gray-900 dark:text-white">
+                        <div class="flex items-center">
+                            <img src="{{ i.product.image.url }}" alt="" width="60px" height="60px"
+                                class="rounded-full mr-4">
+                            <div>
+                                <p class="font-medium">{{ i.product.title }}</p>
+                                <p class="text-gray-500 dark:text-gray-400 text-sm">
+                                    {{ i.product.category }}
+                                </p>
+                                <p class="text-gray-500 dark:text-gray-400 text-sm line-clamp-2">
+                                    {{ i.product.description }}
+                                </p>
+                            </div>
+                        </div>
+                    </td>
+                    <td class="px-6 py-4 text-gray-700 dark:text-gray-400 whitespace-nowrap">₹ {{ i.amount }}</td>
+                    <td class="px-6 py-4 text-gray-700 dark:text-gray-400 whitespace-nowrap">{{ i.quantity }}</td>
+                    <td class="px-6 py-4 text-gray-900 dark:text-white whitespace-nowrap">₹ {{ i.subtotal }}</td>
+                </tr>
+                <tr class="bg-gray-50 dark:bg-gray-700">
+                    <td colspan="3" class="px-6 py-4 text-right text-gray-900 dark:text-white font-medium">Subtotal
+                    </td>
+                    <td class="px-6 py-4 text-gray-900 dark:text-white">₹ {{ i.subtotal }}</td>
+                </tr>
+                {% if i.security_deposit > 0 %}
+                <tr class="bg-gray-50 dark:bg-gray-700">
+                    <td colspan="3" class="px-6 py-4 text-right text-gray-900 dark:text-white font-medium">
+                        Security Deposit <span class="text-sm text-gray-500">(Refundable)</span>
+                    </td>
+                    <td class="px-6 py-4 text-gray-900 dark:text-white">₹ {{ i.security_deposit }}</td>
+                </tr>
+                {% endif %}
+                <tr class="bg-gray-50 dark:bg-gray-700">
+                    <td colspan="3" class="px-6 py-4 text-right text-gray-900 dark:text-white font-bold">Grand Total
+                        (Incl.
+                        Tax)</td>
+                    <td class="px-6 py-4 text-gray-900 dark:text-white font-bold">₹ {{ i.total }}</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6 mt-6">
+        <div>
+            <h3 class="text-lg font-semibold text-gray-900 dark:text-white">User Information</h3>
+            <p class="text-gray-700 dark:text-gray-300">{{ i.full_name }}</p>
+            <p class="text-gray-700 dark:text-gray-300">{{ i.address }}</p>
+            <p class="text-gray-700 dark:text-gray-300">{{ i.pin_code }}</p>
+            <p class="text-gray-700 dark:text-gray-300">T: {{ i.mobile_no }}, {{ i.alternate_no }}</p>
+        </div>
+    </div>
+
+    <div class="no-print">
+        <div class="flex justify-center space-x-4 mt-6">
+            <a href="/orders"
+                class="inline-flex items-center px-5 py-2.5 text-sm font-medium text-center text-white bg-blue-700 rounded-lg hover:bg-blue-800 focus:ring-4 focus:ring-blue-300 dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                <i class="fa fa-arrow-left mr-2"></i>
+                Back to orders
+            </a>
+            {% if cancel %}
+            <a href="/order/cancel/{{ i.id }}"
+                class="inline-flex items-center px-5 py-2.5 text-sm font-medium text-center text-white bg-red-700 rounded-lg hover:bg-red-800 focus:ring-4 focus:ring-red-300 dark:bg-red-600 dark:hover:bg-red-700 dark:focus:ring-red-900">
+                <i class="fa fa-ban mr-2"></i>
+                Cancel Order
+            </a>
+            {% endif %}
+            {% if refund %}
+            <a href="/order/return/{{ i.id }}"
+                class="inline-flex items-center px-5 py-2.5 text-sm font-medium text-center text-white bg-yellow-600 rounded-lg hover:bg-yellow-700 focus:ring-4 focus:ring-yellow-300 dark:bg-yellow-500 dark:hover:bg-yellow-600 dark:focus:ring-yellow-800">
+                <i class="fa fa-rotate-left mr-2"></i>
+                Return Order
+            </a>
+            {% endif %}
+            <!-- <button type="button" onclick="printInvoice()"
+                class="inline-flex items-center px-5 py-2.5 text-sm font-medium text-center text-white bg-gray-700 rounded-lg hover:bg-gray-800 focus:ring-4 focus:ring-gray-300 dark:bg-gray-600 dark:hover:bg-gray-700 dark:focus:ring-gray-800">
+                <i class="fa fa-print mr-2"></i>
+                Print Invoice
+            </button> -->
+        </div>
+    </div>
+</div>
+
+<script>
+    function printInvoice() {
+        var printWindow = window.open('', '_blank');
+        printWindow.document.write('<html><head><title>Invoice</title>');
+        printWindow.document.write('<link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">');
+        printWindow.document.write('<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />'); 
+        printWindow.document.write('</head><body class="bg-gray-100 dark:bg-gray-900">');
+        printWindow.document.write(document.getElementById('invoice').innerHTML);
+        printWindow.document.write('</body></html>');
+        printWindow.document.close();
+        printWindow.focus();
+        
+        printWindow.onload = () => {
+            printWindow.print();
+            printWindow.onafterprint = () => {
+                printWindow.close();
+            };
+        };
+    }
+</script>
+{% endblock %}

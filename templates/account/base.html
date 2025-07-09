@@ -1,0 +1,38 @@
+{%extends '../header.html'%}
+{%load static%}
+{%block main%}
+
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{% block head_title %}{% endblock %}</title>
+     <style>
+      .form-group {
+        margin-top: 10px;
+      }
+    </style>
+   
+  </head>
+  <body>
+    
+    {% block body %}
+
+    {% if messages %}
+      <div class="p-2">
+        {% for message in messages %}
+          <div class="text-center border-bottom">{{message}}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+<center>
+
+  {% block content %}
+  {% endblock %}
+  {% endblock %}
+  {% block extra_body %}
+  {% endblock %}
+</center>
+    
+  </body>
+</html>
+{%endblock%}

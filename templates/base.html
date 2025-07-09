@@ -1,0 +1,160 @@
+{% load static %}
+{% load custom_filters %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WardrobeShare</title>
+    <link rel="stylesheet" href="{% static 'css/output.css' %}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <style>
+        .notification-enter {
+            transform: translateX(100%);
+            opacity: 0;
+        }
+        .notification-enter-active {
+            transform: translateX(0);
+            opacity: 1;
+            transition: all 0.3s ease-out;
+        }
+        .notification-exit {
+            transform: translateX(0);
+            opacity: 1;
+        }
+        .notification-exit-active {
+            transform: translateX(100%);
+            opacity: 0;
+            transition: all 0.3s ease-in;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    <!-- Notification Container -->
+    <div id="notification-container" 
+         x-data="{ notifications: [] }" 
+         class="fixed top-4 right-4 z-50 space-y-4">
+        <template x-for="notification in notifications" :key="notification.id">
+            <div x-show="notification.visible"
+                 x-transition:enter="notification-enter"
+                 x-transition:enter-start="notification-enter"
+                 x-transition:enter-end="notification-enter-active"
+                 x-transition:leave="notification-exit"
+                 x-transition:leave-start="notification-exit"
+                 x-transition:leave-end="notification-exit-active"
+                 :class="{
+                    'bg-green-50 border-green-400 text-green-800': notification.type === 'success',
+                    'bg-red-50 border-red-400 text-red-800': notification.type === 'error',
+                    'bg-blue-50 border-blue-400 text-blue-800': notification.type === 'info',
+                    'bg-yellow-50 border-yellow-400 text-yellow-800': notification.type === 'warning'
+                 }"
+                 class="rounded-lg border-l-4 p-4 shadow-lg flex items-center justify-between max-w-sm">
+                <div class="flex items-center">
+                    <div class="flex-shrink-0 mr-3">
+                        <template x-if="notification.type === 'success'">
+                            <i class="fas fa-check-circle text-green-600"></i>
+                        </template>
+                        <template x-if="notification.type === 'error'">
+                            <i class="fas fa-times-circle text-red-600"></i>
+                        </template>
+                        <template x-if="notification.type === 'info'">
+                            <i class="fas fa-info-circle text-blue-600"></i>
+                        </template>
+                        <template x-if="notification.type === 'warning'">
+                            <i class="fas fa-exclamation-circle text-yellow-600"></i>
+                        </template>
+                    </div>
+                    <div>
+                        <p class="font-medium" x-text="notification.message"></p>
+                    </div>
+                </div>
+                <button @click="notification.visible = false" class="ml-4">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </template>
+    </div>
+
+    <!-- Header -->
+    {% if not request.path|starts_with:'/lender/' and not request.path|starts_with:'/borrower/' and not request.path|starts_with:'/chat/' %}
+    <header class="bg-white shadow-sm">
+        <div class="container mx-auto px-4">
+            {% include 'header.html' %}
+        </div>
+    </header>
+    {% endif %}
+
+    {% if request.path|starts_with:'/chat/' %}
+    <header class="bg-white shadow-sm">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex items-center justify-between">
+                <a href="{% url 'active_chats' %}" class="text-gray-600 hover:text-gray-900">
+                    <i class="fas fa-arrow-left mr-2"></i> Back to Chats
+                </a>
+            </div>
+        </div>
+    </header>
+    {% endif %}
+
+    <!-- Main Content -->
+    <main class="flex-1 flex">
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <!-- Footer -->
+    {% if not request.path|starts_with:'/lender/' and not request.path|starts_with:'/borrower/' %}
+    <footer class="bg-white shadow-md mt-auto">
+        <div class="container mx-auto px-4 py-6">
+            <div class="text-center text-gray-600">
+                <p>&copy; 2024 WardrobeShare. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    {% endif %}
+
+    <script>
+        // Notification System
+        window.showNotification = function(message, type = 'info') {
+            const notificationContainer = document.getElementById('notification-container').__x.$data;
+            const id = Date.now();
+            
+            notificationContainer.notifications.push({
+                id,
+                message,
+                type,
+                visible: true
+            });
+
+            // Auto-remove notification after 5 seconds
+            setTimeout(() => {
+                const notification = notificationContainer.notifications.find(n => n.id === id);
+                if (notification) {
+                    notification.visible = false;
+                    // Remove from array after animation
+                    setTimeout(() => {
+                        notificationContainer.notifications = notificationContainer.notifications.filter(n => n.id !== id);
+                    }, 300);
+                }
+            }, 5000);
+        };
+
+        // Mobile menu toggle
+        document.addEventListener('DOMContentLoaded', () => {
+            const mobileMenuButton = document.getElementById('mobile-menu-button');
+            const mobileMenu = document.getElementById('mobile-menu');
+            
+            if (mobileMenuButton && mobileMenu) {
+                mobileMenuButton.addEventListener('click', () => {
+                    mobileMenu.classList.toggle('hidden');
+                });
+            }
+        });
+    </script>
+
+    {% block extra_js %}
+    {% endblock %}
+</body>
+</html> 

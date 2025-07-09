@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-purple-400 via-pink-400 to-red-400 py-8">
+    <div class="container mx-auto px-4">
+        <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6">
+            <h1 class="text-3xl font-bold mb-6">List Your Item</h1>
+            
+            <form method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Basic Information -->
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold">Basic Information</h2>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Title</label>
+                        <input type="text" name="title" required
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Description</label>
+                        <textarea name="description" rows="4" required
+                                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"></textarea>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Rental Price (per day)</label>
+                        <div class="mt-1 relative rounded-md shadow-sm">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500 sm:text-sm">₹</span>
+                            </div>
+                            <input type="number" name="rental_price" required min="0" step="0.01"
+                                   class="pl-7 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Item Details -->
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold">Item Details</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Category</label>
+                            <select name="category" required
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
+                                <option value="">Select a category</option>
+                                <option value="clothing">Clothing</option>
+                                <option value="accessories">Accessories</option>
+                                <option value="shoes">Shoes</option>
+                                <option value="bags">Bags</option>
+                                <option value="jewelry">Jewelry</option>
+                                <option value="other">Other</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Size</label>
+                            <select name="size" required
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
+                                <option value="">Select size</option>
+                                <option value="xs">XS</option>
+                                <option value="s">S</option>
+                                <option value="m">M</option>
+                                <option value="l">L</option>
+                                <option value="xl">XL</option>
+                                <option value="xxl">XXL</option>
+                                <option value="one_size">One Size</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Brand</label>
+                            <input type="text" name="brand" required
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Condition</label>
+                            <select name="condition" required
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
+                                <option value="">Select condition</option>
+                                <option value="new">New</option>
+                                <option value="like_new">Like New</option>
+                                <option value="good">Good</option>
+                                <option value="fair">Fair</option>
+                                <option value="poor">Poor</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Location and Availability -->
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold">Location & Availability</h2>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Location</label>
+                        <input type="text" name="location" required
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Available Until</label>
+                        <input type="date" name="period" required min="{{ today }}"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
+                    </div>
+                </div>
+                
+                <!-- Images -->
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold">Images</h2>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Main Image</label>
+                        <input type="file" name="image" accept="image/*" required
+                               class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Additional Images (Optional)</label>
+                        <input type="file" name="additional_images" accept="image/*" multiple
+                               class="mt-1 block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-purple-50 file:text-purple-700 hover:file:bg-purple-100">
+                    </div>
+                </div>
+                
+                <!-- Submit Button -->
+                <div class="flex justify-end">
+                    <button type="submit" class="bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600">
+                        List Item
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %} 

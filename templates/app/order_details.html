@@ -1,0 +1,155 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100 py-8">
+    <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg p-8">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold text-gray-800">Order Details</h1>
+            <div class="flex space-x-4">
+                {% if order.rental_status == 'pending_approval' and request.user == order.product.user %}
+                <button onclick="handleRequest('{{ order.id }}', 'approve')" class="bg-green-500 text-white px-4 py-2 rounded-lg hover:bg-green-600">
+                    <i class="fas fa-check mr-2"></i>Approve
+                </button>
+                <button onclick="handleRequest('{{ order.id }}', 'decline')" class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600">
+                    <i class="fas fa-times mr-2"></i>Decline
+                </button>
+                {% endif %}
+                <a href="{% url 'chat_room' order.chat_room.id %}" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600">
+                    <i class="fas fa-comment-alt mr-2"></i>Chat
+                </a>
+            </div>
+        </div>
+
+        <div class="space-y-6">
+            <!-- Order Status -->
+            <div class="border-b pb-6">
+                <h2 class="text-xl font-semibold mb-4">Order Status</h2>
+                <div class="flex items-center space-x-4">
+                    <span class="px-3 py-1 rounded-full text-sm font-medium
+                        {% if order.rental_status == 'active' %}bg-green-100 text-green-800
+                        {% elif order.rental_status == 'pending_approval' %}bg-yellow-100 text-yellow-800
+                        {% elif order.rental_status == 'completed' %}bg-blue-100 text-blue-800
+                        {% else %}bg-red-100 text-red-800{% endif %}">
+                        {{ order.get_rental_status_display }}
+                    </span>
+                    <span class="text-gray-500">Ordered on {{ order.order_date|date:"F d, Y" }}</span>
+                </div>
+            </div>
+
+            <!-- Item Details -->
+            <div class="border-b pb-6">
+                <h2 class="text-xl font-semibold mb-4">Item Details</h2>
+                <div class="flex items-start space-x-6">
+                    <img src="{{ order.product.image.url }}" alt="{{ order.product.title }}" class="w-32 h-32 object-cover rounded-lg">
+                    <div>
+                        <h3 class="text-lg font-medium">{{ order.product.title }}</h3>
+                        <p class="text-gray-600">{{ order.product.description }}</p>
+                        <div class="mt-2">
+                            <p class="text-sm text-gray-500">Rental Price: ₹{{ order.product.rental_price }}/day</p>
+                            <p class="text-sm text-gray-500">Total Amount: ₹{{ order.total }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Rental Period -->
+            <div class="border-b pb-6">
+                <h2 class="text-xl font-semibold mb-4">Rental Period</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-gray-600">Pickup Date</p>
+                        <p class="font-medium">{{ order.rent_start|date:"F d, Y" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600">Return Date</p>
+                        <p class="font-medium">{{ order.rent_end|date:"F d, Y" }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600">Pickup Location</p>
+                        <p class="font-medium">{{ order.pickup_location }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600">Pickup Time</p>
+                        <p class="font-medium">{{ order.pickup_time }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Payment Details -->
+            <div class="border-b pb-6">
+                <h2 class="text-xl font-semibold mb-4">Payment Details</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div>
+                        <p class="text-gray-600">Payment Status</p>
+                        <span class="px-3 py-1 rounded-full text-sm font-medium
+                            {% if order.payment_status %}bg-green-100 text-green-800{% else %}bg-red-100 text-red-800{% endif %}">
+                            {{ order.payment_status|yesno:"Paid,Unpaid" }}
+                        </span>
+                    </div>
+                    <div>
+                        <p class="text-gray-600">Payment Method</p>
+                        <p class="font-medium">{{ order.payment_method }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600">Transaction ID</p>
+                        <p class="font-medium">{{ order.transaction_id }}</p>
+                    </div>
+                    <div>
+                        <p class="text-gray-600">Amount Paid</p>
+                        <p class="font-medium">₹{{ order.total }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Digital Contract -->
+            {% if order.contract %}
+            <div class="border-b pb-6">
+                <h2 class="text-xl font-semibold mb-4">Digital Contract</h2>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600">Contract ID</p>
+                        <p class="font-medium">{{ order.contract.contract_id }}</p>
+                    </div>
+                    <div class="flex space-x-4">
+                        <a href="{% url 'view_contract' order.contract.contract_id %}" class="text-blue-600 hover:text-blue-800">
+                            <i class="fas fa-eye mr-2"></i>View
+                        </a>
+                        <a href="{% url 'download_contract' order.contract.contract_id %}" class="text-green-600 hover:text-green-800">
+                            <i class="fas fa-download mr-2"></i>Download
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function handleRequest(orderId, action) {
+    if (!confirm(`Are you sure you want to ${action} this request?`)) {
+        return;
+    }
+    
+    fetch(`/lender/order/${orderId}/${action}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            location.reload();
+        } else {
+            alert(data.message || 'Error processing request');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('Error processing request');
+    });
+}
+</script>
+{% endblock %} 

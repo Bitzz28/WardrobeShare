@@ -1,0 +1,724 @@
+{%load static%}
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WardrobeShare - Share Your Wardrobe, Save the Planet</title>
+    {% csrf_token %}
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script
+        src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp,container-queries"></script>
+    <script src="https://use.fontawesome.com/releases/v6.3.0/js/all.js" crossorigin="anonymous"></script>
+    <!-- Add Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <link href="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/flowbite@2.5.2/dist/flowbite.min.js"></script>
+    <style type="text/tailwindcss">
+        @layer utilities {
+      .content-auto {
+        content-visibility: auto;
+      }
+    }
+  </style>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: {
+                            50: '#f0fdfa',
+                            100: '#ccfbf1',
+                            200: '#99f6e4',
+                            300: '#5eead4',
+                            400: '#2dd4bf',
+                            500: '#14b8a6',
+                            600: '#0d9488',
+                            700: '#0f766e',
+                            800: '#115e59',
+                            900: '#134e4a',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        main {
+            
+            min-height: 100vh;
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-50">
+
+  <nav class="bg-white border-gray-200 dark:bg-gray-900">
+    <div class="max-w-screen-xl flex flex-wrap items-center justify-between mx-auto p-4">
+        <a href="/" class="flex items-center">
+            <span class="self-center text-2xl font-semibold whitespace-nowrap text-gray-900">WardrobeShare</span>
+        </a>
+        <div class="flex items-center md:order-2">
+            <!-- Notifications Dropdown -->
+            <div class="relative" x-data="{ open: false }">
+                <button @click="open = !open" type="button" class="relative p-2 text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white focus:outline-none" data-notification-button>
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+                    </svg>
+                    <span id="notificationCount" class="absolute -top-1 -right-1 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform bg-red-500 rounded-full min-w-[1.25rem] min-h-[1.25rem]" style="display: none;">
+                        0
+                    </span>
+                </button>
+
+                <div x-show="open" 
+                     @click.away="open = false"
+                     x-transition:enter="transition ease-out duration-200"
+                     x-transition:enter-start="opacity-0 scale-95"
+                     x-transition:enter-end="opacity-100 scale-100"
+                     x-transition:leave="transition ease-in duration-75"
+                     x-transition:leave-start="opacity-100 scale-100"
+                     x-transition:leave-end="opacity-0 scale-95"
+                     class="absolute right-0 mt-2 w-80 bg-white dark:bg-gray-800 rounded-lg shadow-lg z-50">
+                    <div class="p-4 border-b border-gray-200 dark:border-gray-700">
+                        <div class="flex items-center justify-between">
+                            <h3 class="text-lg font-medium text-gray-900 dark:text-white">Notifications</h3>
+                            <div class="flex items-center space-x-2">
+                                <button id="clearAllNotifications" class="text-gray-400 hover:text-red-500 transition-colors duration-200" title="Clear all notifications">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path>
+                                    </svg>
+                                </button>
+                                <button @click="open = false" class="text-gray-400 hover:text-gray-500">
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="max-h-96 overflow-y-auto">
+                        <div id="notifications-list" class="divide-y divide-gray-200 dark:divide-gray-700">
+                            <!-- Notifications will be loaded here -->
+                        </div>
+                    </div>
+                    <div class="p-4 border-t border-gray-200 dark:border-gray-700">
+                        <a href="{% url 'notifications' %}" @click="open = false" class="block text-center text-sm font-medium text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">
+                            View all notifications
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Messages Icon -->
+            <a href="/chat/active" class="relative p-2 mr-3 text-gray-600 hover:text-gray-800 dark:text-gray-300 dark:hover:text-white">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path>
+                </svg>
+                <span id="unreadMessageCount" class="hidden absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full"></span>
+            </a>
+
+            <!-- User Menu -->
+            <div class="flex items-center space-x-2">
+                {% if request.user.is_authenticated %}
+                    <!-- Role Toggle Switch -->
+                    <div class="flex items-center space-x-2 bg-gray-100 p-1.5 rounded-xl shadow-inner">
+                        <button onclick="switchRole('borrower')" id="borrowerBtn" class="px-4 py-1.5 rounded-lg font-medium transition-all duration-500 ease-in-out role-btn active-role text-sm">
+                            <i class="fas fa-shopping-bag mr-1"></i>
+                            Borrower
+                        </button>
+                        <button onclick="switchRole('lender')" id="lenderBtn" class="px-4 py-1.5 rounded-lg font-medium transition-all duration-500 ease-in-out role-btn text-sm">
+                            <i class="fas fa-store mr-1"></i>
+                            Lender
+                        </button>
+                    </div>
+
+                    <!-- User Menu -->
+                    <div class="relative ml-4" x-data="{ open: false }">
+                        <button @click="open = !open" class="flex items-center space-x-2 text-gray-600 hover:text-teal-600">
+                            {% if request.user.profile.image %}
+                                <img src="{{ request.user.profile.image.url }}" alt="Profile" class="w-8 h-8 rounded-full object-cover">
+                            {% else %}
+                                <div class="w-8 h-8 rounded-full bg-teal-100 flex items-center justify-center">
+                                    <i class="fas fa-user text-teal-600"></i>
+                                </div>
+                            {% endif %}
+                            <div class="flex items-center">
+                                <span class="font-medium">{{ request.user.profile.first_name|default:request.user.username }}</span>
+                                <svg class="w-4 h-4 ml-1 transition-transform duration-200" :class="{ 'rotate-180': open }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                                </svg>
+                            </div>
+                        </button>
+                        
+                        <!-- Dropdown Menu -->
+                        <div x-show="open" 
+                             @click.away="open = false"
+                             x-transition:enter="transition ease-out duration-200"
+                             x-transition:enter-start="opacity-0 scale-95"
+                             x-transition:enter-end="opacity-100 scale-100"
+                             x-transition:leave="transition ease-in duration-75"
+                             x-transition:leave-start="opacity-100 scale-100"
+                             x-transition:leave-end="opacity-0 scale-95"
+                             class="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg py-2 z-50">
+                            <div id="borrower-menu-items">
+                                <a href="/borrower/dashboard" class="flex items-center px-4 py-2 text-gray-700 hover:bg-teal-50/80 hover:text-teal-600">
+                                    <i class="fas fa-columns w-5 h-5 mr-3"></i>
+                                    <span>Borrower Dashboard</span>
+                                </a>
+                                <a href="/user/orders" class="flex items-center px-4 py-2 text-gray-700 hover:bg-teal-50/80 hover:text-teal-600">
+                                    <i class="fas fa-shopping-bag w-5 h-5 mr-3"></i>
+                                    <span>My Orders</span>
+                                    {% if user_orders_count > 0 %}
+                                        <span class="ml-auto bg-teal-100/80 text-teal-600 text-xs font-medium px-2 py-0.5 rounded-full">{{ user_orders_count }}</span>
+                                    {% endif %}
+                                </a>
+                                <a href="/wishlist" class="flex items-center px-4 py-2 text-gray-700 hover:bg-teal-50/80 hover:text-teal-600">
+                                    <i class="fas fa-heart w-5 h-5 mr-3"></i>
+                                    <span>My Wishlist</span>
+                                </a>
+                            </div>
+
+                            <div id="lender-menu-items" style="display: none;">
+                                <a href="{% url 'lender_dashboard' %}" class="flex items-center px-4 py-2 text-gray-700 hover:bg-teal-50/80 hover:text-teal-600">
+                                    <i class="fas fa-chart-line w-5 h-5 mr-3"></i>
+                                    <span>Lender Dashboard</span>
+                                </a>
+                            </div>
+
+                            <a href="/accounts/profile" class="flex items-center px-4 py-2 text-gray-700 hover:bg-teal-50/80 hover:text-teal-600">
+                                <i class="fas fa-user-circle w-5 h-5 mr-3"></i>
+                                <span>My Profile</span>
+                            </a>
+                            <a href="/accounts/logout" class="flex items-center px-4 py-2 text-red-600 hover:bg-red-50/80">
+                                <i class="fas fa-sign-out-alt w-5 h-5 mr-3"></i>
+                                <span>Logout</span>
+                            </a>
+                        </div>
+                    </div>
+                {% else %}
+                    <a href="{% url 'account_login' %}" class="text-gray-700 hover:text-gray-900">Login</a>
+                    <a href="{% url 'account_signup' %}" class="bg-teal-600 text-white px-4 py-2 rounded-lg hover:bg-teal-700">Sign Up</a>
+                {% endif %}
+            </div>
+
+            <button class="md:hidden text-gray-600" id="mobile-menu-button">
+              <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7">
+                </path>
+              </svg>
+            </button>
+        </div>
+    </div>
+
+    <div class="md:hidden hidden" id="mobile-menu">
+      <div class="px-2 pt-2 pb-3 space-y-1">
+        {% if request.user.is_authenticated %}
+        <!-- Add Role Toggle for Mobile -->
+        <div class="px-3 py-2">
+          <div class="flex items-center justify-start space-x-2 bg-gray-100 p-1.5 rounded-xl shadow-inner">
+            <button onclick="switchRole('borrower')" id="borrowerBtnMobile" class="px-4 py-1.5 rounded-lg font-medium transition-all duration-500 ease-in-out role-btn active-role text-sm">
+              <i class="fas fa-shopping-bag mr-1"></i>
+              Borrower
+            </button>
+            <button onclick="switchRole('lender')" id="lenderBtnMobile" class="px-4 py-1.5 rounded-lg font-medium transition-all duration-500 ease-in-out role-btn text-sm">
+              <i class="fas fa-store mr-1"></i>
+              Lender
+        </button>
+          </div>
+        </div>
+        
+        <!-- Wishlist Link for Mobile -->
+        <a href="/wishlist" class="flex items-center px-3 py-2 text-gray-600 hover:bg-red-50 hover:text-red-500 rounded-md transition-colors duration-200">
+          <i class="far fa-heart mr-2"></i>
+          <span>Wishlist</span>
+        </a>
+
+        <a href="/accounts/profile" class="block px-3 py-2 text-gray-600 hover:bg-teal-50 rounded-md">Profile</a>
+        <a href="{% url 'lender_dashboard' %}" class="block px-3 py-2 text-gray-600 hover:bg-teal-50 rounded-md lender-menu-item" style="display: none;">Lender Dashboard</a>
+        <a href="/user/posts" class="block px-3 py-2 text-gray-600 hover:bg-teal-50 rounded-md lender-menu-item" style="display: none;">My Items</a>
+        <a href="/user/orders" class="block px-3 py-2 text-gray-600 hover:bg-teal-50 rounded-md">My Orders</a>
+        <a href="/accounts/logout" class="block px-3 py-2 text-gray-600 hover:bg-teal-50 rounded-md">Logout</a>
+        {% else %}
+        <a href="{% url 'account_login' %}" class="block px-3 py-2 text-gray-600 hover:bg-teal-50 rounded-md">Login</a>
+        <a href="{% url 'account_signup' %}" class="block px-3 py-2 bg-teal-600 text-white rounded-md">Get Started</a>
+        {% endif %}
+      </div>
+    </div>
+  </nav>
+
+    <script>
+        document.getElementById('mobile-menu-button').addEventListener('click', function () {
+            document.getElementById('mobile-menu').classList.toggle('hidden');
+        });
+    </script>
+
+    <script>
+        // Dark mode script
+        function toggleDarkMode() {
+            const htmlElement = document.documentElement;
+            const isDarkMode = htmlElement.classList.toggle('dark');
+            localStorage.setItem('darkMode', isDarkMode);
+        }
+
+        // Check for saved dark mode preference
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedDarkMode = localStorage.getItem('darkMode');
+
+            if (savedDarkMode === 'true') {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
+        });
+    </script>
+    <script>
+        // Update icon visibility based on current mode
+        function updateThemeIcons() {
+            const darkIcon = document.getElementById('theme-toggle-dark-icon');
+            const lightIcon = document.getElementById('theme-toggle-light-icon');
+
+            if (document.documentElement.classList.contains('dark')) {
+                darkIcon.classList.add('hidden');
+                lightIcon.classList.remove('hidden');
+            } else {
+                darkIcon.classList.remove('hidden');
+                lightIcon.classList.add('hidden');
+            }
+        }
+    </script>
+
+    <!-- Add the styles for role buttons -->
+    <style>
+        .role-btn {
+            color: #4B5563;
+            background-color: transparent;
+            position: relative;
+            overflow: hidden;
+        }
+        .role-btn:hover {
+            color: #1F2937;
+        }
+        .active-role {
+            background-color: white;
+            color: #0D9488;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            transform: translateY(-1px);
+        }
+        .role-btn::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            height: 2px;
+            background-color: #0D9488;
+            transform: scaleX(0);
+            transition: transform 0.3s ease;
+        }
+        .active-role::after {
+            transform: scaleX(1);
+        }
+    </style>
+
+    <!-- Add the role switching script -->
+    <script>
+        function switchRole(role) {
+            const borrowerBtn = document.getElementById('borrowerBtn');
+            const lenderBtn = document.getElementById('lenderBtn');
+            const borrowerBtnMobile = document.getElementById('borrowerBtnMobile');
+            const lenderBtnMobile = document.getElementById('lenderBtnMobile');
+            const lenderMenuItems = document.getElementById('lender-menu-items');
+            const borrowerMenuItems = document.getElementById('borrower-menu-items');
+            const lenderMenuItemsMobile = document.querySelectorAll('.lender-menu-item');
+            
+            if (role === 'borrower') {
+                // Update button states
+                borrowerBtn.classList.add('active-role');
+                lenderBtn.classList.remove('active-role');
+                if (borrowerBtnMobile) borrowerBtnMobile.classList.add('active-role');
+                if (lenderBtnMobile) lenderBtnMobile.classList.remove('active-role');
+                
+                // Show borrower items, hide lender items
+                if (lenderMenuItems) lenderMenuItems.style.display = 'none';
+                if (borrowerMenuItems) borrowerMenuItems.style.display = 'block';
+                lenderMenuItemsMobile.forEach(item => item.style.display = 'none');
+            } else {
+                // Update button states
+                borrowerBtn.classList.remove('active-role');
+                lenderBtn.classList.add('active-role');
+                if (borrowerBtnMobile) borrowerBtnMobile.classList.remove('active-role');
+                if (lenderBtnMobile) lenderBtnMobile.classList.add('active-role');
+                
+                // Show lender items, hide borrower items
+                if (lenderMenuItems) lenderMenuItems.style.display = 'block';
+                if (borrowerMenuItems) borrowerMenuItems.style.display = 'none';
+                lenderMenuItemsMobile.forEach(item => item.style.display = 'block');
+            }
+            
+            // Store the selected role in localStorage
+            localStorage.setItem('selectedRole', role);
+        }
+
+        // Check role on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            const savedRole = localStorage.getItem('selectedRole') || 'borrower';
+            switchRole(savedRole);
+        });
+    </script>
+
+    <!-- Add Wishlist functionality -->
+    <script>
+        // Function to get CSRF token from cookies
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+        // Function to toggle wishlist
+        function toggleWishlist(postId, button) {
+            // Disable button and show loading state
+            button.disabled = true;
+            const icon = button.querySelector('i');
+            const originalClass = icon.className;
+            icon.className = 'fas fa-spinner fa-spin';
+
+            fetch(`/wishlist/toggle/${postId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCookie('csrftoken'),
+                    'Content-Type': 'application/json'
+                },
+                credentials: 'same-origin'
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.status === 'added') {
+                    button.classList.remove('text-gray-400');
+                    button.classList.add('text-red-500');
+                    icon.classList.remove('far', 'fa-spinner', 'fa-spin');
+                    icon.classList.add('fas', 'fa-heart');
+                } else if (data.status === 'removed') {
+                    button.classList.remove('text-red-500');
+                    button.classList.add('text-gray-400');
+                    icon.classList.remove('fas', 'fa-spinner', 'fa-spin');
+                    icon.classList.add('far', 'fa-heart');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Restore original icon state
+                icon.className = originalClass;
+                // Show error message
+                const errorToast = document.createElement('div');
+                errorToast.className = 'fixed bottom-4 right-4 bg-red-500 text-white px-6 py-3 rounded-lg shadow-lg z-50';
+                errorToast.textContent = 'Failed to update wishlist. Please try again.';
+                document.body.appendChild(errorToast);
+                setTimeout(() => errorToast.remove(), 3000);
+            })
+            .finally(() => {
+                // Re-enable button
+                button.disabled = false;
+            });
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+
+<main class="bg-white dark:bg-darkbg dark:text-white">
+    {% if messages %}
+    {% for message in messages %}
+        <center>
+            {% if 'success' in message.tags %}
+            <div id="alert-3" class="flex items-center p-3 mb-4 text-green-800 rounded-lg bg-green-50 dark:bg-gray-800 dark:text-green-400 max-w-xl w-full" role="alert">
+                <svg class="flex-shrink-0 w-4 h-4" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M10 .5a9.5 9.5 0 1 0 9.5 9.5A9.51 9.51 0 0 0 10 .5ZM9.5 4a1.5 1.5 0 1 1 0 3 1.5 1.5 0 0 1 0-3ZM12 15H8a1 1 0 0 1 0-2h1v-3H8a1 1 0 0 1 0-2h2a1 1 0 0 1 1 1v4h1a1 1 0 0 1 0 2Z"/>
+                </svg>
+                <span class="sr-only">Info</span>
+                <div class="ms-3 text-sm font-medium">
+                    {{ message }}
+                </div>
+                <button type="button" class="ms-auto -mx-1.5 -my-1.5 bg-green-50 text-green-500 rounded-lg focus:ring-2 focus:ring-green-400 p-1.5 hover:bg-green-200 inline-flex items-center justify-center h-8 w-8 dark:bg-gray-800 dark:text-green-400 dark:hover:bg-gray-700" data-dismiss-target="#alert-3" aria-label="Close">
+                    <span class="sr-only">Close</span>
+                    <svg class="w-3 h-3" aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 14 14">
+                        <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="m1 1 6 6m0 0 6 6M7 7l6-6M7 7l-6 6"/>
+                    </svg>
+                </button>
+            </div>
+            {% else %}
+            <!-- Alert removed -->
+            {% endif %}
+        </center>
+    {% endfor %}
+{% endif %}
+
+
+    {% block main%}
+
+    {%endblock%}
+</main>
+
+<script>
+// Function to update notification count
+function updateNotificationCount() {
+    fetch('/notifications/unread-count/')
+        .then(response => response.json())
+        .then(data => {
+            const countElement = document.getElementById('notificationCount');
+            if (countElement) {
+                countElement.textContent = data.count;
+                if (data.count > 0) {
+                    countElement.style.display = 'flex';
+                } else {
+                    countElement.style.display = 'none';
+                }
+            }
+        })
+        .catch(error => console.error('Error updating notification count:', error));
+}
+
+// Update notification count initially and every 30 seconds
+document.addEventListener('DOMContentLoaded', function() {
+    updateNotificationCount();
+    setInterval(updateNotificationCount, 30000);
+});
+</script>
+
+<!-- Add JavaScript for notifications -->
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const notificationButton = document.querySelector('[data-notification-button]');
+    const notificationsPanel = document.getElementById('notificationsPanel');
+    const notificationsList = document.getElementById('notifications-list');
+    const notificationCount = document.getElementById('notificationCount');
+    const clearAllButton = document.getElementById('clearAllNotifications');
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    // Clear all notifications
+    if (clearAllButton) {
+        clearAllButton.addEventListener('click', function() {
+            if (confirm('Are you sure you want to clear all notifications? This action cannot be undone.')) {
+                fetch('/notifications/clear-all/', {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken,
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        if (notificationsList) {
+                            notificationsList.innerHTML = `
+                                <div class="p-4 text-center text-gray-500 dark:text-gray-400">
+                                    No notifications
+                                </div>
+                            `;
+                        }
+                        updateNotificationCount();
+                        // Close the notifications panel
+                        if (notificationsPanel) {
+                            notificationsPanel.classList.add('hidden');
+                        }
+                    } else {
+                        alert('Failed to clear notifications. Please try again.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error clearing notifications:', error);
+                    alert('Failed to clear notifications. Please try again.');
+                });
+            }
+        });
+    }
+
+    // Toggle notifications panel
+    if (notificationButton) {
+        notificationButton.addEventListener('click', function(e) {
+            e.stopPropagation();
+            notificationsPanel.classList.toggle('hidden');
+            if (!notificationsPanel.classList.contains('hidden')) {
+                loadNotifications();
+            }
+        });
+    }
+
+    // Close panel when clicking outside
+    document.addEventListener('click', function(e) {
+        if (notificationsPanel && !notificationsPanel.contains(e.target) && (!notificationButton || !notificationButton.contains(e.target))) {
+            notificationsPanel.classList.add('hidden');
+        }
+    });
+
+    // Load notifications
+    function loadNotifications() {
+        fetch('/notifications/list/')
+            .then(response => response.json())
+            .then(data => {
+                if (notificationsList) {
+                    notificationsList.innerHTML = data.notifications.map(notification => `
+                        <div class="p-4 ${notification.is_read ? '' : 'bg-blue-50 dark:bg-blue-900/10'}" data-notification-id="${notification.id}">
+                            <div class="flex items-start space-x-4">
+                                <div class="flex-1">
+                                    <p class="text-sm font-medium text-gray-900 dark:text-white">${notification.title}</p>
+                                    <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">${notification.message}</p>
+                                    <p class="mt-1 text-xs text-gray-500 dark:text-gray-400">${notification.created_at}</p>
+                                </div>
+                                ${notification.is_read ? '' : '<span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">New</span>'}
+                            </div>
+                            ${notification.link ? `
+                                <div class="mt-3">
+                                    <a href="${notification.link}" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 dark:hover:bg-blue-500">
+                                        View Details
+                                    </a>
+                                </div>
+                            ` : ''}
+                        </div>
+                    `).join('');
+
+                    // Add click handlers to new notifications
+                    notificationsList.querySelectorAll('[data-notification-id]').forEach(notification => {
+                        notification.addEventListener('click', function() {
+                            const notificationId = this.dataset.notificationId;
+                            fetch(`/notifications/mark-read/${notificationId}/`, {
+                                method: 'POST',
+                                headers: {
+                                    'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+                                }
+                            }).then(() => {
+                                this.classList.remove('bg-blue-50', 'dark:bg-blue-900/10');
+                                const badge = this.querySelector('.bg-blue-100');
+                                if (badge) {
+                                    badge.remove();
+                                }
+                                updateNotificationCount();
+                            });
+                        });
+                    });
+                }
+            });
+    }
+
+    // Update notification count
+    function updateNotificationCount() {
+        fetch('/notifications/unread-count/')
+            .then(response => response.json())
+            .then(data => {
+                if (notificationCount) {
+                    notificationCount.textContent = data.count;
+                    if (data.count > 0) {
+                        notificationCount.style.display = 'flex';
+                    } else {
+                        notificationCount.style.display = 'none';
+                    }
+                }
+            })
+            .catch(error => console.error('Error updating notification count:', error));
+    }
+
+    // Update message count
+    function updateMessageCount() {
+        fetch('/chat/unread-count/')
+            .then(response => response.json())
+            .then(data => {
+                const countElement = document.getElementById('unreadMessageCount');
+                if (countElement) {
+                    if (data.count > 0) {
+                        countElement.textContent = data.count;
+                        countElement.classList.remove('hidden');
+                    } else {
+                        countElement.classList.add('hidden');
+                    }
+                }
+            })
+            .catch(error => console.error('Error updating message count:', error));
+    }
+
+    // Update counts periodically
+    updateNotificationCount();
+    updateMessageCount();
+    setInterval(() => {
+        updateNotificationCount();
+        updateMessageCount();
+    }, 30000); // Update every 30 seconds
+});
+</script>
+
+<!-- Add this script at the end of the file, before </body> -->
+<script>
+  // Function to update menu visibility based on role
+  function updateMenuVisibility(role) {
+    const lenderMenuItems = document.getElementById('lender-menu-items');
+    const borrowerMenuItems = document.getElementById('borrower-menu-items');
+    
+    if (lenderMenuItems) {
+      lenderMenuItems.style.display = role === 'lender' ? 'block' : 'none';
+    }
+    if (borrowerMenuItems) {
+      borrowerMenuItems.style.display = role === 'borrower' ? 'block' : 'none';
+    }
+  }
+
+  // Update menu when role is switched
+  function switchRole(role) {
+    const roleActionBtn = document.getElementById('roleActionBtn');
+    if (roleActionBtn) {
+      if (role === 'borrower') {
+        roleActionBtn.innerHTML = '<i class="fas fa-shopping-bag mr-2"></i>Browse Items';
+        roleActionBtn.href = '/search';
+      } else {
+        roleActionBtn.innerHTML = '<i class="fas fa-plus mr-2"></i>List Item';
+        roleActionBtn.href = '/post/add';
+      }
+      // Store the selected role in localStorage
+      localStorage.setItem('selectedRole', role);
+    }
+    // Update menu visibility
+    updateMenuVisibility(role);
+  }
+
+  // Check role on page load
+  document.addEventListener('DOMContentLoaded', () => {
+    const savedRole = localStorage.getItem('selectedRole') || 'borrower';
+    updateMenuVisibility(savedRole);
+  });
+</script>
+
+<!-- Add this style section -->
+<style>
+.group:hover .group-hover\:block {
+    display: block;
+    position: absolute;
+    z-index: 50;
+}
+
+.group {
+    position: relative;
+}
+
+.dropdown-backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: 40;
+    background-color: transparent;
+}
+</style>
+
+</html>

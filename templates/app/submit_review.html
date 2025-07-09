@@ -1,0 +1,166 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-purple-400 via-pink-400 to-red-400 py-8">
+    <div class="container mx-auto px-4">
+        <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6">
+            <h1 class="text-3xl font-bold mb-6">Leave a Review</h1>
+            
+            <!-- Item Summary -->
+            <div class="mb-8">
+                <div class="flex items-center space-x-4">
+                    <img src="{{ order.product.image.url }}" alt="{{ order.product.title }}" class="w-24 h-24 object-cover rounded">
+                    <div>
+                        <h2 class="text-xl font-semibold">{{ order.product.title }}</h2>
+                        <p class="text-gray-600">{{ order.product.brand }} - {{ order.product.category }}</p>
+                        <p class="text-sm text-gray-500">Rented from {{ order.product.user.username }}</p>
+                    </div>
+                </div>
+            </div>
+            
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Rating -->
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold">Rating</h2>
+                    <div class="flex items-center space-x-4">
+                        <div class="flex text-2xl">
+                            {% for i in "12345"|make_list %}
+                            <button type="button" class="rating-star" data-rating="{{ forloop.counter }}">
+                                <i class="fas fa-star text-gray-300 hover:text-yellow-400"></i>
+                            </button>
+                            {% endfor %}
+                        </div>
+                        <input type="hidden" name="rating" id="rating-input" required>
+                    </div>
+                </div>
+                
+                <!-- Review Text -->
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold">Your Review</h2>
+                    <div>
+                        <textarea name="comment" rows="4" required
+                                  class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"
+                                  placeholder="Share your experience with this rental..."></textarea>
+                    </div>
+                </div>
+                
+                <!-- Categories -->
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold">Categories</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Item Condition</label>
+                            <select name="item_condition" required
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
+                                <option value="">Select condition</option>
+                                <option value="excellent">Excellent</option>
+                                <option value="good">Good</option>
+                                <option value="fair">Fair</option>
+                                <option value="poor">Poor</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Communication</label>
+                            <select name="communication" required
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
+                                <option value="">Select rating</option>
+                                <option value="excellent">Excellent</option>
+                                <option value="good">Good</option>
+                                <option value="fair">Fair</option>
+                                <option value="poor">Poor</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Pickup/Dropoff</label>
+                            <select name="pickup_dropoff" required
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
+                                <option value="">Select rating</option>
+                                <option value="excellent">Excellent</option>
+                                <option value="good">Good</option>
+                                <option value="fair">Fair</option>
+                                <option value="poor">Poor</option>
+                            </select>
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Value for Money</label>
+                            <select name="value_for_money" required
+                                    class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
+                                <option value="">Select rating</option>
+                                <option value="excellent">Excellent</option>
+                                <option value="good">Good</option>
+                                <option value="fair">Fair</option>
+                                <option value="poor">Poor</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Submit Button -->
+                <div class="flex justify-end">
+                    <button type="submit" class="bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600">
+                        Submit Review
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const stars = document.querySelectorAll('.rating-star');
+    const ratingInput = document.getElementById('rating-input');
+    
+    stars.forEach(star => {
+        star.addEventListener('click', function() {
+            const rating = this.dataset.rating;
+            ratingInput.value = rating;
+            
+            // Update star colors
+            stars.forEach(s => {
+                const starIcon = s.querySelector('i');
+                if (s.dataset.rating <= rating) {
+                    starIcon.classList.remove('text-gray-300');
+                    starIcon.classList.add('text-yellow-400');
+                } else {
+                    starIcon.classList.remove('text-yellow-400');
+                    starIcon.classList.add('text-gray-300');
+                }
+            });
+        });
+        
+        // Hover effect
+        star.addEventListener('mouseover', function() {
+            const rating = this.dataset.rating;
+            stars.forEach(s => {
+                const starIcon = s.querySelector('i');
+                if (s.dataset.rating <= rating) {
+                    starIcon.classList.remove('text-gray-300');
+                    starIcon.classList.add('text-yellow-400');
+                }
+            });
+        });
+        
+        star.addEventListener('mouseout', function() {
+            const currentRating = ratingInput.value;
+            stars.forEach(s => {
+                const starIcon = s.querySelector('i');
+                if (s.dataset.rating <= currentRating) {
+                    starIcon.classList.remove('text-gray-300');
+                    starIcon.classList.add('text-yellow-400');
+                } else {
+                    starIcon.classList.remove('text-yellow-400');
+                    starIcon.classList.add('text-gray-300');
+                }
+            });
+        });
+    });
+});
+</script>
+{% endblock %} 

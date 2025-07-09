@@ -1,0 +1,366 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+{% csrf_token %}
+<div class="min-h-screen bg-gray-50 py-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Contract Header -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden mb-6">
+            <div class="p-6 sm:p-8">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6">
+                    <div>
+                        <h1 class="text-3xl font-bold text-gray-900">Rental Contract</h1>
+                        <p class="mt-1 text-sm text-gray-600">Generated on {{ contract.created_at|date:"F d, Y" }}</p>
+                    </div>
+                    <div class="mt-4 sm:mt-0 flex space-x-3">
+                        <a href="{% url 'download_contract' contract.contract_id %}" 
+                           class="inline-flex items-center px-4 py-2 bg-green-600 text-white text-sm font-medium rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 transition-colors">
+                            <svg class="h-5 w-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                            </svg>
+                            Download PDF
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Contract Status -->
+                <div class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium
+                    {% if contract.status == 'accepted' %}bg-green-100 text-green-800
+                    {% elif contract.status == 'pending' %}bg-yellow-100 text-yellow-800
+                    {% else %}bg-red-100 text-red-800{% endif %}">
+                    <span class="w-2 h-2 rounded-full mr-2
+                        {% if contract.status == 'accepted' %}bg-green-400
+                        {% elif contract.status == 'pending' %}bg-yellow-400
+                        {% else %}bg-red-400{% endif %}"></span>
+                    {{ contract.get_status_display }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Contract Content -->
+        <div class="bg-white rounded-xl shadow-lg overflow-hidden">
+            <!-- Contract Details -->
+            <div class="p-6 sm:p-8 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-900 mb-6">Contract Details</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Contract ID</p>
+                        <p class="mt-1 text-base text-gray-900">{{ contract.contract_id }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Created Date</p>
+                        <p class="mt-1 text-base text-gray-900">{{ contract.created_at|date:"F d, Y" }}</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Contract Terms -->
+            <div class="p-6 sm:p-8 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-900 mb-6">Contract Terms</h2>
+                <div class="space-y-6">
+                    <!-- Item Details -->
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Item</p>
+                        <p class="mt-1 text-base text-gray-900">{{ contract.order.product.title }}</p>
+                    </div>
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Description</p>
+                        <p class="mt-1 text-base text-gray-900">{{ contract.order.product.description }}</p>
+                    </div>
+
+                    <!-- Rental Period -->
+                    <div class="border-t pt-4">
+                        <p class="text-sm font-medium text-gray-600">Rental Period</p>
+                        <div class="mt-2 flex items-center space-x-2">
+                            <div class="flex-1">
+                                <p class="text-sm text-gray-500">From</p>
+                                <p class="text-base text-gray-900">{{ contract.order.rent_start|date:"F d, Y" }}</p>
+                            </div>
+                            <div class="flex-1">
+                                <p class="text-sm text-gray-500">To</p>
+                                <p class="text-base text-gray-900">{{ contract.order.rent_end|date:"F d, Y" }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Financial Terms -->
+                    <div class="border-t pt-4">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Rental Price</p>
+                                <p class="mt-1 text-lg font-semibold text-gray-900">₹{{ contract.order.total }}</p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Security Deposit</p>
+                                <p class="mt-1 text-lg font-semibold text-gray-900">₹{{ contract.order.security_deposit }}</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Additional Terms -->
+                    <div class="border-t pt-4">
+                        <div class="space-y-4">
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Late Fees</p>
+                                <p class="mt-1 text-base text-gray-900">₹{{ contract.late_fees }} per day</p>
+                            </div>
+                            <div>
+                                <p class="text-sm font-medium text-gray-600">Damage Penalties</p>
+                                <p class="mt-1 text-base text-gray-900">{{ contract.damage_penalties }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Verification Documents -->
+            <div class="p-6 sm:p-8 border-b border-gray-200">
+                <h2 class="text-xl font-semibold text-gray-900 mb-6">Verification Documents</h2>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                    <!-- Government ID -->
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 mb-2">Government ID</p>
+                        {% if contract.id_document %}
+                            <div class="relative group cursor-pointer" onclick="openImageModal('{{ contract.id_document.url }}', 'Government ID')">
+                                <img src="{{ contract.id_document.url }}" alt="Government ID" 
+                                     class="w-full h-48 object-cover rounded transition-transform duration-200 group-hover:scale-[1.02]">
+                                <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200">
+                                    <span class="text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-200 font-medium">
+                                        Click to view full size
+                                    </span>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="flex items-center justify-center h-48 bg-gray-100 rounded">
+                                <p class="text-gray-500">No ID document uploaded</p>
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <!-- Selfie Photo -->
+                    <div>
+                        <p class="text-sm font-medium text-gray-600 mb-2">Selfie Photo</p>
+                        {% if contract.selfie_photo %}
+                            <div class="relative group cursor-pointer" onclick="openImageModal('{{ contract.selfie_photo.url }}', 'Selfie')">
+                                <img src="{{ contract.selfie_photo.url }}" alt="Selfie" 
+                                     class="w-full h-48 object-cover rounded transition-transform duration-200 group-hover:scale-[1.02]">
+                                <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200">
+                                    <span class="text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-200 font-medium">
+                                        Click to view full size
+                                    </span>
+                                </div>
+                            </div>
+                        {% else %}
+                            <div class="flex items-center justify-center h-48 bg-gray-100 rounded">
+                                <p class="text-gray-500">No selfie photo uploaded</p>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lender Actions Section -->
+            {% if user == contract.order.product.user %}
+                <div class="mt-8">
+                    <h2 class="text-xl font-semibold mb-4">Lender Actions</h2>
+                    {% if not contract.lender_approved and contract.status != 'rejected' %}
+                        <div class="flex space-x-4">
+                            <button id="approveContract" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
+                                Approve Contract
+                            </button>
+                            <button id="rejectContract" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
+                                Reject Contract
+                            </button>
+                        </div>
+                    {% else %}
+                        {% if contract.lender_approved %}
+                            <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4">
+                                <p>You have approved this contract on {{ contract.lender_approval_date|date:"F d, Y" }}</p>
+                            </div>
+                        {% elif contract.status == 'rejected' %}
+                            <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4">
+                                <p>You have rejected this contract</p>
+                            </div>
+                        {% endif %}
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <!-- Borrower Actions Section -->
+            {% if user == contract.order.user %}
+                <div class="mt-8">
+                    <h2 class="text-xl font-semibold mb-4">Borrower Actions</h2>
+                    {% if contract.lender_approved and not contract.borrower_signature %}
+                        <div class="space-y-4">
+                            <div class="mb-4">
+                                <label for="signature" class="block text-sm font-medium text-gray-700">Enter your full name as digital signature</label>
+                                <input type="text" id="signature" name="signature" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                            </div>
+                            <div class="mb-4">
+                                <label for="acceptance" class="block text-sm font-medium text-gray-700">Type 'I ACCEPT' to confirm</label>
+                                <input type="text" id="acceptance" name="acceptance" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-blue-500 focus:ring-blue-500 uppercase">
+                            </div>
+                            <button id="acceptContract" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded" disabled>
+                                Send Signed Contract to Lender
+                            </button>
+                        </div>
+                    {% elif not contract.lender_approved %}
+                        <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4">
+                            <p>Waiting for lender to review and approve the contract</p>
+                        </div>
+                    {% elif contract.status == 'rejected' %}
+                        <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-4">
+                            <p>This contract has been rejected by the lender</p>
+                        </div>
+                    {% endif %}
+                </div>
+            {% endif %}
+
+            <!-- Signatures -->
+            <div class="p-6 sm:p-8">
+                <h2 class="text-xl font-semibold text-gray-900 mb-6">Signature</h2>
+                <div>
+                    <p class="text-sm font-medium text-gray-600">Borrower Signature</p>
+                    {% if contract.borrower_signature %}
+                    <p class="mt-1 text-base text-gray-900">{{ contract.borrower_signature }}</p>
+                    <p class="text-sm text-gray-500">{{ contract.accepted_at|date:"F d, Y" }}</p>
+                    {% else %}
+                    <p class="mt-1 text-base text-gray-500">Not signed yet</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Image Modal -->
+<div id="imageModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden">
+    <div class="absolute inset-0 flex items-center justify-center p-4">
+        <div class="bg-white rounded-lg shadow-xl max-w-4xl w-full relative">
+            <div class="flex items-center justify-between p-4 border-b">
+                <h3 id="imageModalTitle" class="text-xl font-semibold text-gray-900"></h3>
+                <button onclick="closeImageModal()" class="text-gray-400 hover:text-gray-500 focus:outline-none">
+                    <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
+            <div class="relative p-4">
+                <img id="modalImage" src="" alt="Full size image" class="max-w-full max-h-[70vh] mx-auto object-contain">
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Get CSRF token
+    const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    // Image Modal Functions
+    function openImageModal(imageUrl, title) {
+        const modal = document.getElementById('imageModal');
+        const modalImage = document.getElementById('modalImage');
+        const modalTitle = document.getElementById('imageModalTitle');
+        
+        modalImage.src = imageUrl;
+        modalTitle.textContent = title;
+        modal.classList.remove('hidden');
+    }
+
+    function closeImageModal() {
+        const modal = document.getElementById('imageModal');
+        modal.classList.add('hidden');
+    }
+
+    // Lender approval/rejection handlers
+    const approveButton = document.getElementById('approveContract');
+    const rejectButton = document.getElementById('rejectContract');
+    
+    if (approveButton) {
+        approveButton.addEventListener('click', function() {
+            handleLenderAction('approve');
+        });
+    }
+    
+    if (rejectButton) {
+        rejectButton.addEventListener('click', function() {
+            handleLenderAction('reject');
+        });
+    }
+    
+    // Borrower acceptance handlers
+    const signatureInput = document.getElementById('signature');
+    const acceptanceInput = document.getElementById('acceptance');
+    const acceptButton = document.getElementById('acceptContract');
+    
+    if (signatureInput && acceptanceInput && acceptButton) {
+        function validateForm() {
+            const signature = signatureInput.value.trim();
+            const acceptance = acceptanceInput.value.trim().toUpperCase();
+            acceptButton.disabled = !(signature && acceptance === 'I ACCEPT');
+        }
+        
+        signatureInput.addEventListener('input', validateForm);
+        acceptanceInput.addEventListener('input', validateForm);
+        
+        acceptButton.addEventListener('click', function() {
+            handleBorrowerAcceptance();
+        });
+    }
+
+    function handleLenderAction(action) {
+        fetch(`/contract/accept/{{ contract.contract_id }}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                action: action
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                location.reload();
+            } else {
+                alert(data.message || 'An error occurred');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request');
+        });
+    }
+
+    function handleBorrowerAcceptance() {
+        const signature = document.getElementById('signature').value.trim();
+        const acceptance = document.getElementById('acceptance').value.trim();
+        
+        fetch(`/contract/accept/{{ contract.contract_id }}/`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
+            },
+            body: JSON.stringify({
+                signature: signature,
+                acceptance: acceptance
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                location.reload();
+            } else {
+                alert(data.message || 'An error occurred');
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while processing your request');
+        });
+    }
+</script>
+{% endblock %} 

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Rental Agreement - {{ order.product.title }}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+        }
+        .section {
+            margin-bottom: 20px;
+        }
+        .section-title {
+            font-weight: bold;
+            font-size: 1.2em;
+            margin-bottom: 10px;
+        }
+        .signature-section {
+            margin-top: 50px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .signature-box {
+            width: 45%;
+            border-top: 1px solid #333;
+            padding-top: 10px;
+        }
+        .footer {
+            margin-top: 50px;
+            text-align: center;
+            font-size: 0.8em;
+            color: #666;
+        }
+        .qr-code {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .contract-id {
+            text-align: right;
+            font-size: 0.8em;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="contract">
+        <div class="header">
+            <h1>RENTAL AGREEMENT</h1>
+            <p>Contract ID: {{ contract.contract_id }}</p>
+        </div>
+
+        <div class="section">
+            <div class="section-title">1. PARTIES TO THE AGREEMENT</div>
+            <p><strong>Lender:</strong> {{ order.product.user.get_full_name }}</p>
+            <p><strong>Borrower:</strong> {{ order.user.get_full_name }}</p>
+        </div>
+
+        <div class="section">
+            <div class="section-title">2. ITEM DETAILS</div>
+            <p><strong>Item:</strong> {{ order.product.title }}</p>
+            <p><strong>Description:</strong> {{ order.product.description }}</p>
+            <p><strong>Condition:</strong> {{ order.product.condition }}</p>
+        </div>
+
+        <div class="section">
+            <div class="section-title">3. RENTAL TERMS</div>
+            <p><strong>Start Date:</strong> {{ order.start_date|date:"F d, Y" }}</p>
+            <p><strong>End Date:</strong> {{ order.end_date|date:"F d, Y" }}</p>
+            <p><strong>Rental Amount:</strong> ${{ order.total_amount }}</p>
+            <p><strong>Security Deposit:</strong> ${{ order.security_deposit }}</p>
+        </div>
+
+        <div class="section">
+            <div class="section-title">4. TERMS AND CONDITIONS</div>
+            <ol>
+                <li>The borrower agrees to return the item in the same condition as received.</li>
+                <li>Any damage to the item will be the responsibility of the borrower.</li>
+                <li>Late returns will incur a penalty of 10% of the rental amount per day.</li>
+                <li>The lender reserves the right to reject rental requests based on borrower history.</li>
+                <li>Disputes will be resolved through the WardrobeShare platform's dispute resolution system.</li>
+                <li>Either party may cancel the agreement with 24 hours notice before the start date.</li>
+            </ol>
+        </div>
+
+        <div class="signature-section">
+            <div class="signature-box">
+                <p><strong>Lender Signature:</strong></p>
+                <p>{{ contract.lender_signature }}</p>
+                <p>Date: {{ contract.created_at|date:"F d, Y" }}</p>
+            </div>
+            <div class="signature-box">
+                <p><strong>Borrower Signature:</strong></p>
+                <p>{{ contract.borrower_signature }}</p>
+                <p>Date: {{ contract.accepted_at|date:"F d, Y" }}</p>
+            </div>
+        </div>
+
+        <div class="qr-code">
+            <img src="{{ contract.qr_code_url }}" alt="Contract Verification QR Code">
+            <p>Scan to verify contract authenticity</p>
+        </div>
+
+        <div class="footer">
+            <p>This is a legally binding agreement generated through WardrobeShare.</p>
+            <p>Generated on: {{ contract.created_at|date:"F d, Y H:i" }}</p>
+        </div>
+    </div>
+</body>
+</html> 

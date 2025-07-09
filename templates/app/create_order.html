@@ -1,0 +1,150 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-purple-400 via-pink-400 to-red-400 py-8">
+    <div class="container mx-auto px-4">
+        <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6">
+            <h1 class="text-3xl font-bold mb-6">Rent Item</h1>
+            
+            <!-- Product Summary -->
+            <div class="mb-8">
+                <div class="flex items-center space-x-4">
+                    <img src="{{ product.image.url }}" alt="{{ product.title }}" class="w-24 h-24 object-cover rounded">
+                    <div>
+                        <h2 class="text-xl font-semibold">{{ product.title }}</h2>
+                        <p class="text-gray-600">{{ product.brand }} - {{ product.category }}</p>
+                        <p class="text-purple-600 font-semibold">₹{{ product.rental_price }}/day</p>
+                    </div>
+                </div>
+            </div>
+            
+            <form method="post" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- Rental Period -->
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold">Rental Period</h2>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Start Date</label>
+                            <input type="date" name="rent_start" required min="{{ today }}"
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
+                        </div>
+                        
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">End Date</label>
+                            <input type="date" name="rent_end" required min="{{ today }}"
+                                   class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
+                        </div>
+                    </div>
+                    
+                    <div id="price-summary" class="bg-gray-50 p-4 rounded-lg">
+                        <div class="flex justify-between mb-2">
+                            <span class="text-gray-600">Daily Rate</span>
+                            <span>₹{{ product.rental_price }}</span>
+                        </div>
+                        <div class="flex justify-between mb-2">
+                            <span class="text-gray-600">Number of Days</span>
+                            <span id="days-count">0</span>
+                        </div>
+                        <div class="flex justify-between font-semibold">
+                            <span>Total Amount</span>
+                            <span id="total-amount">₹0</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Pickup Details -->
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold">Pickup Details</h2>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Preferred Pickup Time</label>
+                        <input type="datetime-local" name="pickup_time" required
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Pickup Location</label>
+                        <input type="text" name="pickup_location" required value="{{ product.location }}"
+                               class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
+                    </div>
+                </div>
+                
+                <!-- Payment Method -->
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold">Payment Method</h2>
+                    
+                    <div class="space-y-2">
+                        <label class="flex items-center space-x-3">
+                            <input type="radio" name="payment_method" value="card" checked
+                                   class="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300">
+                            <span class="text-gray-700">Credit/Debit Card</span>
+                        </label>
+                        
+                        <label class="flex items-center space-x-3">
+                            <input type="radio" name="payment_method" value="upi"
+                                   class="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300">
+                            <span class="text-gray-700">UPI</span>
+                        </label>
+                    </div>
+                </div>
+                
+                <!-- Terms and Conditions -->
+                <div class="space-y-4">
+                    <h2 class="text-xl font-semibold">Terms and Conditions</h2>
+                    
+                    <div class="bg-gray-50 p-4 rounded-lg text-sm text-gray-600">
+                        <p class="mb-2">By proceeding with this rental, you agree to:</p>
+                        <ul class="list-disc list-inside space-y-1">
+                            <li>Return the item in the same condition as received</li>
+                            <li>Pay for any damages or losses</li>
+                            <li>Follow the pickup and return schedule</li>
+                            <li>Communicate with the lender through the platform</li>
+                        </ul>
+                    </div>
+                    
+                    <label class="flex items-center space-x-3">
+                        <input type="checkbox" name="terms_accepted" required
+                               class="h-4 w-4 text-purple-600 focus:ring-purple-500 border-gray-300 rounded">
+                        <span class="text-gray-700">I agree to the terms and conditions</span>
+                    </label>
+                </div>
+                
+                <!-- Submit Button -->
+                <div class="flex justify-end">
+                    <button type="submit" class="bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600">
+                        Proceed to Payment
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const startDate = document.querySelector('input[name="rent_start"]');
+    const endDate = document.querySelector('input[name="rent_end"]');
+    const daysCount = document.getElementById('days-count');
+    const totalAmount = document.getElementById('total-amount');
+    const dailyRate = {{ product.rental_price }};
+    
+    function updatePrice() {
+        if (startDate.value && endDate.value) {
+            const start = new Date(startDate.value);
+            const end = new Date(endDate.value);
+            const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+            
+            daysCount.textContent = days;
+            totalAmount.textContent = `₹${days * dailyRate}`;
+        }
+    }
+    
+    startDate.addEventListener('change', updatePrice);
+    endDate.addEventListener('change', updatePrice);
+});
+</script>
+{% endblock %} 

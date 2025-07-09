@@ -1,0 +1,257 @@
+{% extends 'header.html' %}
+{% load static %}
+{% block main %}
+
+<!-- Hero Section -->
+<div class="min-h-screen bg-gradient-to-br from-teal-50 to-pink-50">
+    <div class="container mx-auto px-4">
+        <div class="flex items-center min-h-[calc(100vh-120px)]">
+            <!-- Left Content -->
+            <div class="w-1/2 pr-12">
+                <h1 class="text-6xl font-bold text-gray-900 mb-6">Share Your Wardrobe,<br>Rent The Latest Styles</h1>
+                <p class="text-xl text-gray-600 mb-8">WardrobeShare connects fashion lovers to share and discover unique clothing pieces. Earn money by renting out your clothes or find the perfect outfit for any occasion.</p>
+                
+                {% if request.user.is_authenticated %}
+                <!-- Dynamic Action Button for Logged In Users -->
+                <div class="flex space-x-4 mb-8">
+                    <a href="/search" id="roleActionBtn" class="inline-flex items-center bg-white text-teal-600 px-8 py-3 rounded-lg font-semibold border-2 border-teal-200 hover:border-teal-600 hover:bg-teal-50 transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
+                        <i class="fas fa-shopping-bag mr-2"></i>
+                        Browse Items
+                    </a>
+                </div>
+                {% else %}
+                <!-- Action Buttons for Non-Logged In Users -->
+                <div class="flex space-x-4 mb-8">
+                    <a href="{% url 'account_signup' %}" class="inline-flex items-center bg-teal-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-teal-700 transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
+                        <i class="fas fa-user-plus mr-2"></i>
+                        Join WardrobeShare
+                    </a>
+                    <a href="{% url 'account_login' %}" class="inline-flex items-center bg-white text-teal-600 px-8 py-3 rounded-lg font-semibold border-2 border-teal-200 hover:border-teal-600 hover:bg-teal-50 transition-all duration-300 transform hover:scale-105 hover:shadow-lg">
+                        <i class="fas fa-sign-in-alt mr-2"></i>
+                        Sign In
+                    </a>
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- Right Image -->
+            <div class="w-1/2">
+                <div class="relative">
+                    <img src="{% static 'images/wardrobe-hero.jpg' %}" alt="Colorful Wardrobe Collection" class="rounded-2xl shadow-2xl object-cover w-full h-[600px]">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add this style section in the head or at the end of the file -->
+<style>
+    .role-btn {
+        color: #4B5563;
+        background-color: transparent;
+        position: relative;
+        overflow: hidden;
+    }
+    .role-btn:hover {
+        color: #1F2937;
+    }
+    .active-role {
+        background-color: white;
+        color: #0D9488;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transform: translateY(-1px);
+    }
+    .role-btn::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 2px;
+        background-color: #0D9488;
+        transform: scaleX(0);
+        transition: transform 0.3s ease;
+    }
+    .active-role::after {
+        transform: scaleX(1);
+    }
+</style>
+
+<!-- Add this script section at the end of the file -->
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const savedRole = localStorage.getItem('selectedRole') || 'borrower';
+        const borrowerBtn = document.getElementById('borrowerBtn');
+        const lenderBtn = document.getElementById('lenderBtn');
+        
+        if (borrowerBtn && lenderBtn) {
+            if (savedRole === 'borrower') {
+                borrowerBtn.classList.add('active-role');
+                lenderBtn.classList.remove('active-role');
+            } else {
+                lenderBtn.classList.add('active-role');
+                borrowerBtn.classList.remove('active-role');
+            }
+            // Initialize the action button
+            switchRole(savedRole);
+        }
+    });
+</script>
+
+<!-- Add this after the hero section and before the products grid -->
+<div class="container mx-auto px-4 py-6">
+    <div class="flex justify-between items-center mb-6">
+        <div class="flex items-center space-x-4">
+            <h2 class="text-2xl font-bold text-gray-800">Available Items</h2>
+            <span class="text-gray-600">({{ total_count }} items)</span>
+        </div>
+        <div class="flex items-center space-x-4">
+            <span class="text-sm text-gray-600">Show only nearby items</span>
+            <label class="relative inline-flex items-center cursor-pointer">
+                <input type="checkbox" 
+                       class="sr-only peer" 
+                       id="nearby-toggle"
+                       {% if show_nearby %}checked{% endif %}
+                       onchange="toggleNearbyItems(this.checked)">
+                <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 dark:peer-focus:ring-blue-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-blue-600"></div>
+            </label>
+        </div>
+    </div>
+    {% if show_nearby %}
+    <div class="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+        <div class="flex">
+            <div class="flex-shrink-0">
+                <svg class="h-5 w-5 text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd" />
+                </svg>
+            </div>
+            <div class="ml-3">
+                <p class="text-sm text-blue-700">
+                    Showing {{ nearby_count }} items near {{ user_city }}
+                </p>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Features Section -->
+<div class="py-20 bg-white">
+    <div class="container mx-auto px-4">
+        <div class="text-center mb-16">
+            <span class="bg-teal-100 text-teal-800 text-sm font-medium px-4 py-1 rounded-full">Features</span>
+            <h2 class="text-4xl font-bold text-gray-800 mt-6 mb-4">A Better Way to Share Clothes</h2>
+            <p class="text-gray-600 max-w-2xl mx-auto">WardrobeShare simplifies the process of borrowing and lending clothes with features focused on local connections and security.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            <!-- Feature 1 -->
+            <div class="text-center p-6 rounded-lg">
+                <div class="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-map-marker-alt text-2xl text-teal-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">Local Sharing</h3>
+                <p class="text-gray-600">Connect with lenders in your neighborhood for easy self-pickup</p>
+            </div>
+
+            <!-- Feature 2 -->
+            <div class="text-center p-6 rounded-lg">
+                <div class="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-calendar text-2xl text-teal-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">Scheduled Pickups</h3>
+                <p class="text-gray-600">Arrange pickup times that work for both borrowers and lenders</p>
+            </div>
+
+            <!-- Feature 3 -->
+            <div class="text-center p-6 rounded-lg">
+                <div class="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-file-contract text-2xl text-teal-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">Digital Contracts</h3>
+                <p class="text-gray-600">Legal protection with digital agreements for every rental</p>
+            </div>
+
+            <!-- Feature 4 -->
+            <div class="text-center p-6 rounded-lg">
+                <div class="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-shield-alt text-2xl text-teal-600"></i>
+                </div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-2">Secure Community</h3>
+                <p class="text-gray-600">Verified users and reviews to ensure trust and reliability</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- How It Works Section -->
+<div class="py-20 bg-gray-50">
+    <div class="container mx-auto px-4">
+        <div class="text-center mb-16">
+            <span class="bg-purple-100 text-purple-800 text-sm font-medium px-4 py-1 rounded-full">Process</span>
+            <h2 class="text-4xl font-bold text-gray-800 mt-6 mb-4">How WardrobeShare Works</h2>
+            <p class="text-gray-600 max-w-2xl mx-auto">From signing up to returning items, our platform makes clothes sharing simple and secure.</p>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            <!-- Step 1 -->
+            <div class="bg-white p-8 rounded-lg shadow-sm">
+                <div class="text-purple-600 font-semibold mb-2">01</div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">Sign Up</h3>
+                <p class="text-gray-600">Create your profile as a borrower, lender, or both</p>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="bg-white p-8 rounded-lg shadow-sm">
+                <div class="text-purple-600 font-semibold mb-2">02</div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">Browse Items</h3>
+                <p class="text-gray-600">Search for clothing and accessories in your local area</p>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="bg-white p-8 rounded-lg shadow-sm">
+                <div class="text-purple-600 font-semibold mb-2">03</div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">Request & Approve</h3>
+                <p class="text-gray-600">Send rental requests and get approvals from lenders</p>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="bg-white p-8 rounded-lg shadow-sm">
+                <div class="text-purple-600 font-semibold mb-2">04</div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">Digital Contract</h3>
+                <p class="text-gray-600">Sign a digital agreement outlining rental terms</p>
+            </div>
+
+            <!-- Step 5 -->
+            <div class="bg-white p-8 rounded-lg shadow-sm">
+                <div class="text-purple-600 font-semibold mb-2">05</div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">Self-Pickup</h3>
+                <p class="text-gray-600">Meet the lender at the designated pickup location</p>
+            </div>
+
+            <!-- Step 6 -->
+            <div class="bg-white p-8 rounded-lg shadow-sm">
+                <div class="text-purple-600 font-semibold mb-2">06</div>
+                <h3 class="text-xl font-semibold text-gray-800 mb-3">Return & Review</h3>
+                <p class="text-gray-600">Return the item and share your experience</p>
+            </div>
+        </div>
+
+        <div class="text-center mt-12">
+            <a href="{% url 'account_signup' %}" class="inline-block bg-teal-600 text-white px-8 py-3 rounded-lg font-semibold hover:bg-teal-700 transition duration-300">
+                Get Started Now
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- Add this JavaScript at the bottom of the file -->
+<script>
+function toggleNearbyItems(showNearby) {
+    const url = new URL(window.location.href);
+    url.searchParams.set('nearby', showNearby);
+    window.location.href = url.toString();
+}
+</script>
+
+{% endblock %}

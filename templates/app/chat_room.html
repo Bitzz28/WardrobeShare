@@ -1,0 +1,134 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-gray-100 py-8">
+    <div class="max-w-4xl mx-auto bg-white rounded-lg shadow-lg">
+        <!-- Chat Header -->
+        <div class="p-4 border-b">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center">
+                    <img src="{{ chat_room.order.user.profile.profile_picture.url }}" alt="Profile" class="w-10 h-10 rounded-full mr-3">
+                    <div>
+                        <h2 class="text-lg font-semibold">{{ chat_room.order.user.username }}</h2>
+                        <p class="text-sm text-gray-500">{{ chat_room.order.product.title }}</p>
+                    </div>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <a href="{% url 'order_details' chat_room.order.id %}" class="text-blue-600 hover:text-blue-800">
+                        <i class="fas fa-file-alt"></i> View Order
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chat Messages -->
+        <div id="chat-messages" class="h-[500px] overflow-y-auto p-4 space-y-4">
+            {% for message in messages %}
+            <div class="flex {% if message.sender == request.user %}justify-end{% else %}justify-start{% endif %}">
+                <div class="max-w-[70%] {% if message.sender == request.user %}bg-blue-500 text-white rounded-l-lg rounded-tr-lg{% else %}bg-gray-100 text-gray-800 rounded-r-lg rounded-tl-lg{% endif %} p-3">
+                    <p class="text-sm">{{ message.message }}</p>
+                    <p class="text-xs mt-1 opacity-75">{{ message.timestamp|date:"g:i A" }}</p>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Message Input -->
+        <div class="p-4 border-t">
+            <form id="message-form" class="flex space-x-4">
+                <input type="text" id="message-input" class="flex-1 border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Type your message...">
+                <button type="submit" class="bg-blue-500 text-white px-6 py-2 rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    <i class="fas fa-paper-plane"></i> Send
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const messageForm = document.getElementById('message-form');
+    const messageInput = document.getElementById('message-input');
+    const chatMessages = document.getElementById('chat-messages');
+    const chatRoomId = {{ chat_room.id }};
+    
+    // Scroll to bottom of chat
+    function scrollToBottom() {
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+    
+    // Send message
+    messageForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const message = messageInput.value.trim();
+        if (!message) return;
+        
+        fetch('/chat/send-message/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+            },
+            body: JSON.stringify({
+                chat_room_id: chatRoomId,
+                message: message
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                messageInput.value = '';
+                // Add new message to chat
+                const messageDiv = document.createElement('div');
+                messageDiv.className = 'flex justify-end';
+                messageDiv.innerHTML = `
+                    <div class="max-w-[70%] bg-blue-500 text-white rounded-l-lg rounded-tr-lg p-3">
+                        <p class="text-sm">${data.message.message}</p>
+                        <p class="text-xs mt-1 opacity-75">${data.message.timestamp}</p>
+                    </div>
+                `;
+                chatMessages.appendChild(messageDiv);
+                scrollToBottom();
+            }
+        })
+        .catch(error => console.error('Error:', error));
+    });
+    
+    // Poll for new messages
+    function pollMessages() {
+        fetch(`/chat/${chatRoomId}/messages`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.messages) {
+                    const lastMessageId = document.querySelector('.chat-message')?.dataset.messageId;
+                    const newMessages = data.messages.filter(msg => !lastMessageId || msg.id > lastMessageId);
+                    
+                    if (newMessages.length > 0) {
+                        newMessages.forEach(message => {
+                            const messageDiv = document.createElement('div');
+                            messageDiv.className = 'flex justify-start chat-message';
+                            messageDiv.dataset.messageId = message.id;
+                            messageDiv.innerHTML = `
+                                <div class="max-w-[70%] bg-gray-100 text-gray-800 rounded-r-lg rounded-tl-lg p-3">
+                                    <p class="text-sm">${message.message}</p>
+                                    <p class="text-xs mt-1 opacity-75">${message.timestamp}</p>
+                                </div>
+                            `;
+                            chatMessages.appendChild(messageDiv);
+                        });
+                        scrollToBottom();
+                    }
+                }
+            })
+            .catch(error => console.error('Error:', error));
+    }
+    
+    // Poll every 5 seconds
+    setInterval(pollMessages, 5000);
+    
+    // Initial scroll to bottom
+    scrollToBottom();
+});
+</script>
+{% endblock %} 

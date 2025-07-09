@@ -1,0 +1,213 @@
+{% extends 'header.html' %}
+{% load static %}
+{% block main %}
+
+<section class="bg-white dark:bg-gray-900 py-12">
+    <div class="container px-4 mx-auto max-w-screen-xl">
+        <div class="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-2">
+            <div class="md:order-2">
+                <div
+                    class="bg-white rounded-lg shadow dark:border dark:bg-gray-800 dark:border-gray-700 overflow-hidden">
+                    <div class="w-full h-96 md:h-[500px]">
+                        <img id="mainImage" class="rounded-t-lg w-full h-full object-cover" src="{{ data.image.url }}"
+                            alt="{{ data.name }}" />
+                    </div>
+                    <div class="flex flex-wrap justify-center p-4 space-x-2">
+                        {% for i in data.postimage_set.all %}
+                        <div class="border mx-1 rounded-lg item-thumb">
+                            <img width="60" height="60"
+                                class="rounded-lg cursor-pointer hover:opacity-80 transition duration-200"
+                                src="{{ i.image.url }}" data-image-url="{{ i.image.url }}"
+                                onclick="document.getElementById('mainImage').src = '{{ i.image.url }}';"
+                                onmouseover="document.getElementById('mainImage').src = '{{ i.image.url }}';" />
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            <div class="md:order-1">
+                <div class="bg-white rounded-lg shadow dark:border dark:bg-gray-800 dark:border-gray-700 p-6">
+                    <h1
+                        class="text-2xl font-bold text-gray-900 md:text-3xl lg:text-4xl dark:text-white line-clamp-3">
+                        {{ data.title }}
+                    </h1>
+                    <div class="mt-4">
+                        <div class="space-y-2">
+                            <div class="flex items-baseline">
+                                <span class="text-2xl font-bold text-black dark:text-white">₹{{ data.price }}</span>
+                                <span class="text-lg text-gray-600 dark:text-gray-400 ml-1">/ {{ data.rent_method }}</span>
+                            </div>
+                            {% if data.security_deposit %}
+                            <div class="flex items-center text-gray-700 dark:text-gray-300">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
+                                </svg>
+                                <span>Security Deposit: ₹{{ data.security_deposit }}</span>
+                                <div class="ml-2 group relative">
+                                    <svg class="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    <div class="hidden group-hover:block absolute left-0 bottom-full mb-2 w-64 p-2 bg-gray-800 text-white text-sm rounded-lg shadow-lg z-10">
+                                        This security deposit will be refunded after the item is returned in good condition.
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+                        </div>
+                        <div class="mt-4">
+                            <p class="text-sm text-black dark:text-white">{{ data.description }}</p>
+                            <p class="text-sm text-black dark:text-white mt-2">{{ data.location | title }}</p>
+                            {% if not available %}
+                            <p class="text-sm text-red-800 dark:text-red-400 mt-2">Currently Unavailable</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                    <hr class="my-4">
+                    <h2 class="text-xl font-bold text-gray-900 md:text-2xl dark:text-white">Posted by</h2>
+                    <div class="flex items-center">
+                        <img class="w-10 h-10 rounded-full mr-4" src="{%if data.profile.image %} {{ data.profile.image.url }} {%else%} {% static 'profile.jpg' %}{% endif %}">
+                        <a href="/post/profile/{{data.profile.id}}">
+                            <div>
+                                <span class="text-md text-black dark:text-white">{{ data.profile.first_name | title }}
+                                    {{ data.profile.last_name | title }}</span><br>
+                                <span class="text-sm text-gray-500 dark:text-gray-400">{{ data.profile.city | title }}</span>
+                            </div>
+                        </a>
+                    </div>
+                    <p class="mt-2">
+                        <span class="text-md text-black dark:text-white">Posted on {{ data.created_at|date:"F j, Y" }}</span>
+                    </p>
+                </div>
+                {% if buy %}
+                <div class="text-left mt-4 flex items-center gap-4">
+                    <a href="/order/{{ data.id }}/1"
+                        class="flex-1 inline-block text-center text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800">
+                        Rent now
+                    </a>
+                </div>
+                {% else %}
+                <div class="text-left mt-4 flex items-center gap-4">
+                    <button disabled
+                        class="flex-1 inline-block text-center text-white bg-gray-400 cursor-not-allowed font-medium rounded-lg text-sm px-5 py-2.5">
+                        Unavailable
+                    </button>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+{% if similar %}
+<section class="bg-white dark:bg-gray-900 py-12">
+    <div class="container px-4 mx-auto">
+        <h1 class="mt-6 mb-8 text-2xl font-bold text-black dark:text-white text-center">Similar Posts</h1>
+        <div class="grid grid-cols-2 gap-6 md:grid-cols-4">
+            {% for item in similar %}
+            <div
+                class="overflow-hidden bg-white border border-gray-200 rounded-lg shadow-md dark:bg-gray-800 dark:border-gray-700 transition-transform duration-300 hover:scale-105">
+                <a href="/post/view/{{ item.id }}">
+                    <img class="rounded-t-lg h-48 w-full object-cover" src="{{ item.image.url }}" alt="img">
+                    <div class="p-5">
+                        <h5 class="mb-2 text-xl font-bold tracking-tight text-gray-900 dark:text-white line-clamp-2">
+                            {{ item.title }}
+                        </h5>
+                        <p class="mb-3 font-normal text-gray-700 dark:text-gray-400 line-clamp-3">
+                            {{ item.description }}</p>
+                        <div class="flex items-center justify-between">
+                            <span class="text-xl font-bold text-gray-900 dark:text-white">₹ {{ item.price }}</span>
+                            <a href="/order/{{ item.id }}/1"
+                                class="text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">Rent
+                                Now</a>
+                        </div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+<section class="flex flex-wrap justify-between p-6">
+    <div class="w-full lg:w-[70%] bg-white rounded-lg shadow dark:border dark:bg-gray-800 dark:border-gray-700 p-4">
+        <h2 class="text-2xl font-bold text-black dark:text-white text-left text-center">Reviews</h2>
+        {%if comments%}
+        {% for item in comments %}
+        <div class="flex items-start gap-2.5 mb-4">
+            <img class="w-8 h-8 rounded-full" src="{% if item.user.image %}{{ item.user.image.url }}{% else %}{% static 'profile.jpg' %}{% endif %}" alt="User image">
+            <div class="flex flex-col gap-1 w-full">
+                <div
+                    class="flex flex-col w-full leading-1.5 p-4 border-gray-200 bg-gray-100 rounded-e-xl dark:bg-gray-700">
+                    <div class="flex items-center space-x-2 rtl:space-x-reverse mb-2">
+                        <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ item.user.user.username }}</span>
+                        <span
+                            class="text-sm font-normal text-gray-500 dark:text-gray-400">{{ item.created_at }}</span>
+                    </div>
+                    <p class="text-sm font-normal text-gray-900 dark:text-white">{{ item.subject }}</p>
+                    <p class="text-sm font-normal text-gray-900 dark:text-white">{{ item.comment }}</p>
+                    {% if item.image %}
+                    <div class="my-2.5 w-40 ">
+                        <img src="{{ item.image.url }}" class="rounded-lg w-full" alt="Comment image">
+                    </div>
+                    {% endif %}
+                    <div class="flex items-center">
+                        {% for i in item.rating %}
+                        <svg class="w-4 h-4 text-yellow-300 ms-1" aria-hidden="true"
+                            xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 22 20">
+                            <path
+                                d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z" />
+                        </svg>
+                        {% endfor %}
+                        {% for i in item.empty %}
+                        <svg class="w-4 h-4 ms-1 text-gray-300 dark:text-gray-500" aria-hidden="true"
+                            xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 22 20">
+                            <path
+                                d="M20.924 7.625a1.523 1.523 0 0 0-1.238-1.044l-5.051-.734-2.259-4.577a1.534 1.534 0 0 0-2.752 0L7.365 5.847l-5.051.734A1.535 1.535 0 0 0 1.463 9.2l3.656 3.563-.863 5.031a1.532 1.532 0 0 0 2.226 1.616L11 17.033l4.518 2.375a1.534 1.534 0 0 0 2.226-1.617l-.863-5.03L20.537 9.2a1.523 1.523 0 0 0 .387-1.575Z" />
+                        </svg>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+        {%else%}
+        <p class="text-sm font-normal text-gray-500 dark:text-gray-400">No comments yet.</p>
+        {%endif%}
+    </div>
+
+    <div class="w-full lg:w-[30%] max-w-lg text-gray-700 text-lg dark:text-white">
+        <div class="bg-white rounded-lg shadow dark:border dark:bg-gray-800 dark:border-gray-700">
+            <div class="p-6 space-y-4 md:space-y-6 sm:p-8">
+                <h1 class="text-xl font-bold text-gray-900 md:text-2xl dark:text-white text-center">
+                    Add a Review
+                </h1>
+                {% if request.user.is_authenticated %}
+                <form action="" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {% for field in form %}
+                    <div class="mb-4">
+                        <label for="{{ field.id_for_label }}"
+                            class="block mb-2 text-sm font-medium text-gray-900 dark:text-white">{{ field.label }}</label>
+                        {{ field }}
+                        {% for error in field.errors %}
+                        <div class="text-red-500 text-sm mt-1">
+                            {{ error }}
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endfor %}
+                    <button type="submit"
+                        class="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700">
+                        Submit
+                    </button>
+                </form>
+                {% else %}
+                <h1 class="text-md font-bold text-gray-900 dark:text-white text-center">
+                    <a href="{% url 'login' %}" class="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300">Login</a> to add a review
+                </h1>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</section>
+
+{% endblock %}

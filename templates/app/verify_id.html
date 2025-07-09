@@ -1,0 +1,213 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="min-h-screen bg-gradient-to-br from-purple-400 via-pink-400 to-red-400 py-8">
+    <div class="container mx-auto px-4">
+        <div class="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6">
+            <h1 class="text-3xl font-bold mb-6">ID Verification</h1>
+            
+            {% if verification_status == 'pending' %}
+            <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-clock text-yellow-400"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-yellow-700">
+                            Your verification is pending review. We'll notify you once it's complete.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% elif verification_status == 'rejected' %}
+            <div class="bg-red-50 border-l-4 border-red-400 p-4 mb-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-times-circle text-red-400"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-red-700">
+                            Your verification was rejected. Please try again with clearer documents.
+                        </p>
+                        {% if rejection_reason %}
+                        <p class="mt-2 text-sm text-red-600">
+                            Reason: {{ rejection_reason }}
+                        </p>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% elif verification_status == 'verified' %}
+            <div class="bg-green-50 border-l-4 border-green-400 p-4 mb-6">
+                <div class="flex">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-check-circle text-green-400"></i>
+                    </div>
+                    <div class="ml-3">
+                        <p class="text-sm text-green-700">
+                            Your ID has been verified successfully.
+                        </p>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+            
+            {% if verification_status != 'verified' %}
+            <form method="post" enctype="multipart/form-data" class="space-y-6">
+                {% csrf_token %}
+                
+                <!-- ID Type -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">ID Type</label>
+                    <select name="id_type" required
+                            class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500">
+                        <option value="">Select ID Type</option>
+                        <option value="aadhar">Aadhar Card</option>
+                        <option value="pan">PAN Card</option>
+                        <option value="passport">Passport</option>
+                        <option value="drivers_license">Driver's License</option>
+                        <option value="voter_id">Voter ID</option>
+                    </select>
+                </div>
+                
+                <!-- ID Number -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">ID Number</label>
+                    <input type="text" name="id_number" required
+                           class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-purple-500 focus:ring-purple-500"
+                           placeholder="Enter your ID number">
+                </div>
+                
+                <!-- Front Image -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Front of ID</label>
+                    <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                        <div class="space-y-1 text-center">
+                            <img id="front-preview" class="mx-auto h-32 w-32 hidden object-cover rounded-lg" alt="Front preview">
+                            <div class="flex text-sm text-gray-600">
+                                <label class="relative cursor-pointer bg-white rounded-md font-medium text-purple-600 hover:text-purple-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-purple-500">
+                                    <span>Upload a file</span>
+                                    <input type="file" name="front_image" accept="image/*" required
+                                           class="sr-only" onchange="previewImage(this, 'front-preview')">
+                                </label>
+                                <p class="pl-1">or drag and drop</p>
+                            </div>
+                            <p class="text-xs text-gray-500">
+                                PNG, JPG, GIF up to 10MB
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Back Image -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Back of ID</label>
+                    <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                        <div class="space-y-1 text-center">
+                            <img id="back-preview" class="mx-auto h-32 w-32 hidden object-cover rounded-lg" alt="Back preview">
+                            <div class="flex text-sm text-gray-600">
+                                <label class="relative cursor-pointer bg-white rounded-md font-medium text-purple-600 hover:text-purple-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-purple-500">
+                                    <span>Upload a file</span>
+                                    <input type="file" name="back_image" accept="image/*" required
+                                           class="sr-only" onchange="previewImage(this, 'back-preview')">
+                                </label>
+                                <p class="pl-1">or drag and drop</p>
+                            </div>
+                            <p class="text-xs text-gray-500">
+                                PNG, JPG, GIF up to 10MB
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Selfie -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700">Selfie with ID</label>
+                    <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                        <div class="space-y-1 text-center">
+                            <img id="selfie-preview" class="mx-auto h-32 w-32 hidden object-cover rounded-lg" alt="Selfie preview">
+                            <div class="flex text-sm text-gray-600">
+                                <label class="relative cursor-pointer bg-white rounded-md font-medium text-purple-600 hover:text-purple-500 focus-within:outline-none focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-purple-500">
+                                    <span>Upload a file</span>
+                                    <input type="file" name="selfie_image" accept="image/*" required
+                                           class="sr-only" onchange="previewImage(this, 'selfie-preview')">
+                                </label>
+                                <p class="pl-1">or drag and drop</p>
+                            </div>
+                            <p class="text-xs text-gray-500">
+                                PNG, JPG, GIF up to 10MB
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Guidelines -->
+                <div class="bg-gray-50 p-4 rounded-lg">
+                    <h3 class="text-sm font-medium text-gray-900 mb-2">Guidelines for ID Verification</h3>
+                    <ul class="text-sm text-gray-600 space-y-1">
+                        <li>• Ensure all text is clearly visible and not blurry</li>
+                        <li>• Make sure there's good lighting when taking photos</li>
+                        <li>• Hold the ID steady and avoid glare</li>
+                        <li>• For the selfie, hold your ID next to your face</li>
+                        <li>• All corners of the ID should be visible</li>
+                    </ul>
+                </div>
+                
+                <!-- Submit Button -->
+                <div class="flex justify-end">
+                    <button type="submit" class="bg-purple-500 text-white px-6 py-3 rounded-lg hover:bg-purple-600">
+                        Submit for Verification
+                    </button>
+                </div>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+function previewImage(input, previewId) {
+    const preview = document.getElementById(previewId);
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            preview.src = e.target.result;
+            preview.classList.remove('hidden');
+        }
+        
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+
+// Drag and drop functionality
+document.addEventListener('DOMContentLoaded', function() {
+    const dropZones = document.querySelectorAll('.border-dashed');
+    
+    dropZones.forEach(zone => {
+        zone.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            this.classList.add('border-purple-500');
+        });
+        
+        zone.addEventListener('dragleave', function(e) {
+            e.preventDefault();
+            this.classList.remove('border-purple-500');
+        });
+        
+        zone.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('border-purple-500');
+            
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                const input = this.querySelector('input[type="file"]');
+                input.files = files;
+                previewImage(input, input.getAttribute('onchange').split("'")[1]);
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

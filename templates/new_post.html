@@ -1,0 +1,535 @@
+{% extends 'header.html' %}
+{% load static %}
+{% block main %}
+<div class="min-h-screen bg-gradient-to-br from-teal-50 to-pink-50 py-12">
+  <div class="container mx-auto px-4">
+    <div class="max-w-4xl mx-auto">
+      <!-- Page Header -->
+      <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">List Your Item</h1>
+        <p class="text-gray-600">Share your wardrobe items with the community</p>
+      </div>
+
+      <!-- Main Form Card -->
+      <div class="bg-white rounded-xl shadow-lg p-8">
+        <form method="post" class="mx-auto" enctype="multipart/form-data" id="listingForm">
+        {% csrf_token %}
+          
+          <!-- Progress Steps -->
+          <div class="mb-8">
+            <div class="flex items-center justify-between">
+              <div class="flex-1">
+                <div class="flex items-center">
+                  <div class="flex items-center justify-center w-10 h-10 bg-teal-600 text-white rounded-full font-semibold">1</div>
+                  <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-900">Basic Details</p>
+                    <p class="text-xs text-gray-500">Title, category, and description</p>
+                  </div>
+                </div>
+              </div>
+              <div class="hidden md:block flex-1 h-0.5 bg-gray-200"></div>
+              <div class="flex-1">
+                <div class="flex items-center">
+                  <div class="flex items-center justify-center w-10 h-10 bg-gray-200 text-gray-600 rounded-full font-semibold">2</div>
+                  <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-900">Item Details</p>
+                    <p class="text-xs text-gray-500">Price, quantity, and availability</p>
+                  </div>
+                </div>
+              </div>
+              <div class="hidden md:block flex-1 h-0.5 bg-gray-200"></div>
+              <div class="flex-1">
+                <div class="flex items-center">
+                  <div class="flex items-center justify-center w-10 h-10 bg-gray-200 text-gray-600 rounded-full font-semibold">3</div>
+                  <div class="ml-4">
+                    <p class="text-sm font-medium text-gray-900">Images</p>
+                    <p class="text-xs text-gray-500">Upload item photos</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form Sections -->
+          <div class="space-y-8">
+            <!-- Basic Details Section -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="md:col-span-2">
+                <label for="{{ form.title.id_for_label }}" class="block text-sm font-medium text-gray-900 mb-2">
+                  {{ form.title.label }} <span class="text-red-500">*</span>
+            </label>
+            <input type="text" id="{{ form.title.id_for_label }}" name="title" value="{{ form.title.value|default:'' }}"
+                  class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200"
+                  placeholder="Enter a descriptive title for your item" required>
+            {% for error in form.title.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+            {% endfor %}
+          </div>
+
+              <div>
+                <label for="{{ form.category.id_for_label }}" class="block text-sm font-medium text-gray-900 mb-2">
+                  {{ form.category.label }} <span class="text-red-500">*</span>
+            </label>
+            <select id="{{ form.category.id_for_label }}" name="category"
+                  class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200"
+                  required>
+              <option value="" {% if not form.category.value %}selected{% endif %}>Select Category</option>
+              {% for category in form.category.field.choices %}
+              {% if category.0 %}
+              <option value="{{ category.0 }}" {% if form.category.value == category.0 %}selected{% endif %}>
+                {{ category.1 }}
+              </option>
+              {% endif %}
+              {% endfor %}
+            </select>
+            {% for error in form.category.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+            {% endfor %}
+          </div>
+
+              <div>
+                <label for="{{ form.gender.id_for_label }}" class="block text-sm font-medium text-gray-900 mb-2">
+                  {{ form.gender.label }} <span class="text-red-500">*</span>
+            </label>
+            <select id="{{ form.gender.id_for_label }}" name="gender"
+                  class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200"
+                  required>
+              <option value="" {% if not form.gender.value %}selected{% endif %}>Select Gender</option> 
+                  {% for choice in form.gender.field.choices %}
+                  <option value="{{ choice.0 }}" {% if form.gender.value == choice.0 %}selected{% endif %}>
+                    {{ choice.1 }}
+              </option>
+              {% endfor %}
+            </select>
+            {% for error in form.gender.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+                {% endfor %}
+            </div>
+
+              <div>
+                <label for="{{ form.size.id_for_label }}" class="block text-sm font-medium text-gray-900 mb-2">
+                  {{ form.size.label }} <span class="text-red-500">*</span>
+                </label>
+                <select id="{{ form.size.id_for_label }}" name="size"
+                  class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200"
+                  required>
+                  <option value="" {% if not form.size.value %}selected{% endif %}>Select Size</option>
+                  {% for choice in form.size.field.choices %}
+                  <option value="{{ choice.0 }}" {% if form.size.value == choice.0 %}selected{% endif %}>
+                    {{ choice.1 }}
+                  </option>
+                  {% endfor %}
+                </select>
+                {% if form.size.help_text %}
+                <p class="mt-1 text-sm text-gray-500">{{ form.size.help_text }}</p>
+                {% endif %}
+                {% for error in form.size.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+            {% endfor %}
+          </div>
+
+              <div>
+                <label for="{{ form.color.id_for_label }}" class="block text-sm font-medium text-gray-900 mb-2">
+                  {{ form.color.label }} <span class="text-red-500">*</span>
+            </label>
+                <select id="{{ form.color.id_for_label }}" name="color"
+                  class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200"
+                  required>
+                  <option value="" {% if not form.color.value %}selected{% endif %}>Select Color</option>
+                  {% for choice in form.color.field.choices %}
+                  <option value="{{ choice.0 }}" {% if form.color.value == choice.0 %}selected{% endif %}>
+                    {{ choice.1 }}
+                  </option>
+                  {% endfor %}
+                </select>
+                {% if form.color.help_text %}
+                <p class="mt-1 text-sm text-gray-500">{{ form.color.help_text }}</p>
+                {% endif %}
+                {% for error in form.color.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+            {% endfor %}
+          </div>
+
+              <div>
+                <label for="{{ form.brand.id_for_label }}" class="block text-sm font-medium text-gray-900 mb-2">
+                  {{ form.brand.label }}
+            </label>
+                <input type="text" id="{{ form.brand.id_for_label }}" name="brand"
+                  class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200"
+                  value="{{ form.brand.value|default:'' }}"
+                  placeholder="Enter brand name">
+                {% if form.brand.help_text %}
+                <p class="mt-1 text-sm text-gray-500">{{ form.brand.help_text }}</p>
+                {% endif %}
+                {% for error in form.brand.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+            {% endfor %}
+          </div>
+
+              <div class="md:col-span-2">
+                <label for="{{ form.description.id_for_label }}" class="block text-sm font-medium text-gray-900 mb-2">
+                  {{ form.description.label }} <span class="text-red-500">*</span>
+            </label>
+                <textarea id="{{ form.description.id_for_label }}" name="description" rows="4"
+                  class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200"
+                  placeholder="Describe your item in detail (condition, size, material, etc.)" required>{{ form.description.value|default:'' }}</textarea>
+                {% for error in form.description.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+                {% endfor %}
+              </div>
+            </div>
+
+            <!-- Item Details Section -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <label for="{{ form.price.id_for_label }}" class="block text-sm font-medium text-gray-900 mb-2">
+                  {{ form.price.label }} <span class="text-red-500">*</span>
+                </label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₹</span>
+                  <input type="number" id="{{ form.price.id_for_label }}" name="price"
+                    class="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200"
+                    value="{{ form.price.value|default:'' }}"
+                    placeholder="Enter rental price" required min="0" step="0.01">
+                </div>
+                {% for error in form.price.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+                {% endfor %}
+              </div>
+
+              <div>
+                <label for="{{ form.security_deposit.id_for_label }}" class="block text-sm font-medium text-gray-900 mb-2">
+                  Security Deposit
+                </label>
+                <div class="relative">
+                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">₹</span>
+                  <input type="number" id="{{ form.security_deposit.id_for_label }}" name="security_deposit"
+                    class="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200"
+                    value="{{ form.security_deposit.value|default:'' }}"
+                    placeholder="Enter security deposit amount (optional)" min="0" step="0.01">
+                </div>
+                <p class="mt-1 text-sm text-gray-500">{{ form.security_deposit.help_text }}</p>
+                {% for error in form.security_deposit.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+                {% endfor %}
+              </div>
+
+              <div>
+                <label for="{{ form.rent_method.id_for_label }}" class="block text-sm font-medium text-gray-900 mb-2">
+                  {{ form.rent_method.label }} <span class="text-red-500">*</span>
+                </label>
+                <select id="{{ form.rent_method.id_for_label }}" name="rent_method"
+                  class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200"
+                  required>
+                  <option value="" {% if not form.rent_method.value %}selected{% endif %}>Select Rental Period</option>
+                  {% for method in form.rent_method.field.choices %}
+                  {% if method.0 %}
+                  <option value="{{ method.0 }}" {% if form.rent_method.value == method.0 %}selected{% endif %}>
+                    {{ method.1 }}
+                  </option>
+                  {% endif %}
+                  {% endfor %}
+                </select>
+                {% for error in form.rent_method.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+                {% endfor %}
+              </div>
+
+              <!-- Removed quantity field since wardrobe items are unique pieces -->
+              <input type="hidden" id="{{ form.quantity.id_for_label }}" name="quantity" value="1">
+
+              <div>
+                <label for="{{ form.period.id_for_label }}" class="block text-sm font-medium text-gray-900 mb-2">
+                  Available Until <span class="text-red-500">*</span>
+                </label>
+                <div class="space-y-2">
+                  <input type="date" id="{{ form.period.id_for_label }}" name="period" value="{{ form.period.value|date:'Y-m-d' }}"
+                    class="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200"
+                    required min="{{ today|date:'Y-m-d' }}">
+                  <p class="text-sm text-gray-500">Select the last date until which this item will be available for rent</p>
+                </div>
+                {% for error in form.period.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+                {% endfor %}
+              </div>
+
+              <div>
+                <label for="{{ form.location.id_for_label }}" class="block text-sm font-medium text-gray-900 mb-2">
+                  {{ form.location.label }} <span class="text-red-500">*</span>
+                </label>
+                <div class="relative">
+                  <input type="text" id="{{ form.location.id_for_label }}" name="location" value="{{ form.location.value|default:'' }}"
+                    class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition duration-200"
+                    placeholder="Enter your location" required>
+                  <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
+                    <i class="fas fa-map-marker-alt"></i>
+                  </span>
+                  <button type="button" id="useCurrentLocation" class="absolute inset-y-0 right-0 pr-3 flex items-center text-teal-600 hover:text-teal-800">
+                    <i class="fas fa-crosshairs"></i>
+                  </button>
+            </div>
+                <input type="hidden" id="latitude" name="latitude">
+                <input type="hidden" id="longitude" name="longitude">
+                {% for error in form.location.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+            {% endfor %}
+          </div>
+
+              <!-- Delivery Options Section -->
+              <div class="md:col-span-2">
+                <label class="block text-sm font-medium text-gray-900 mb-2">
+                  Delivery Option <span class="text-red-500">*</span>
+                </label>
+                <p class="text-sm text-gray-500 mb-4">This item can only be picked up from your location.</p>
+                
+                <div class="grid grid-cols-1 md:grid-cols-1 gap-4">
+                  <!-- Self Pickup Only -->
+                  <div class="relative">
+                    <input type="radio" id="selfpickup" name="delivery_type" value="Self Pickup" 
+                           class="peer sr-only" checked readonly>
+                    <label for="selfpickup" 
+                           class="flex flex-col h-full p-4 bg-white border-2 rounded-lg cursor-not-allowed 
+                                  border-teal-500 bg-teal-50 transition-colors duration-200">
+                      <div class="flex items-center mb-3">
+                        <div class="w-10 h-10 flex items-center justify-center bg-teal-100 rounded-full mr-3">
+                          <i class="fas fa-store text-teal-600 text-lg"></i>
+                        </div>
+                        <h3 class="font-medium text-gray-900">Self Pickup</h3>
+                      </div>
+                      <p class="text-sm text-gray-500">Borrowers must pick up items from your location</p>
+                      <div class="mt-3 text-sm text-teal-600">
+                        <i class="fas fa-check-circle mr-1"></i> No shipping fee
+                      </div>
+                    </label>
+                  </div>
+                </div>
+
+                {% for error in form.delivery_type.errors %}
+                <p class="mt-2 text-sm text-red-600">
+                  <i class="fas fa-exclamation-circle mr-1"></i>
+                  {{ error }}
+                </p>
+                {% endfor %}
+              </div>
+
+              <div class="flex items-center space-x-2">
+              <input id="{{ form.availability.id_for_label }}" type="checkbox" name="availability" 
+                {% if form.availability.value %}checked{% endif %}
+                  class="w-4 h-4 text-teal-600 border-gray-300 rounded focus:ring-teal-500">
+                <label for="{{ form.availability.id_for_label }}" class="text-sm font-medium text-gray-900">
+                {{ form.availability.label }}
+              </label>
+            {% for error in form.availability.errors %}
+                <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+            {% endfor %}
+          </div>
+
+              <div class="md:col-span-2">
+                <div class="border-t border-gray-200 pt-6">
+                  <h3 class="text-lg font-medium text-gray-900 mb-4">Style Inspiration <span class="text-sm text-gray-500">(Optional)</span></h3>
+                  <p class="text-sm text-gray-500 mb-4">Share your fashion inspiration accounts to help borrowers understand your style</p>
+                  
+                  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Instagram -->
+                    <div class="relative">
+                      <label for="instagram" class="block text-sm font-medium text-gray-900 mb-2">
+                        <i class="fab fa-instagram text-pink-600 mr-2"></i>Instagram Profile
+            </label>
+                      <div class="relative group">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">@</span>
+                        <input type="text" id="instagram" name="instagram"
+                          class="w-full pl-8 pr-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-pink-500 focus:border-transparent transition duration-200"
+                          placeholder="username">
+                        <div class="hidden group-hover:block absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-gray-500">
+                          instagram.com/<span class="text-gray-400">username</span>
+                        </div>
+            </div>
+          </div>
+
+                    <!-- Pinterest -->
+                    <div class="relative">
+                      <label for="pinterest" class="block text-sm font-medium text-gray-900 mb-2">
+                        <i class="fab fa-pinterest text-red-600 mr-2"></i>Pinterest Board
+            </label>
+                      <div class="relative group">
+                        <span class="absolute inset-y-0 left-0 pl-3 flex items-center text-gray-500">
+                          <i class="fab fa-pinterest"></i>
+                        </span>
+                        <input type="text" id="pinterest" name="pinterest"
+                          class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-red-500 focus:border-transparent transition duration-200"
+                          placeholder="Your fashion board URL">
+                        <div class="hidden group-hover:block absolute right-3 top-1/2 transform -translate-y-1/2 text-xs text-gray-500">
+                          pinterest.com/board/<span class="text-gray-400">fashion</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div class="flex items-center mt-4 p-4 bg-gray-50 rounded-lg">
+                    <i class="fas fa-lightbulb text-yellow-500 text-lg mr-3"></i>
+                    <p class="text-sm text-gray-600">
+                      Sharing your fashion inspiration helps potential borrowers understand your style and make better rental decisions.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Images Section -->
+            <div class="space-y-4">
+              <div class="border-2 border-dashed border-gray-300 rounded-lg p-6">
+                <div class="text-center">
+                  <i class="fas fa-cloud-upload-alt text-4xl text-gray-400 mb-2"></i>
+                  <h3 class="text-lg font-medium text-gray-900">Upload Item Images</h3>
+                  <p class="text-sm text-gray-500 mb-4">Drag and drop your images here, or click to browse</p>
+                  
+                  <label for="{{ form.image.id_for_label }}" class="block">
+                    <div class="inline-flex items-center px-4 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 cursor-pointer transition duration-200">
+                      <i class="fas fa-plus mr-2"></i>
+                      <span>Add Images</span>
+                    </div>
+                    {{ form.image }}
+                  </label>
+                  {% for error in form.image.errors %}
+                  <p class="mt-1 text-sm text-red-600">{{ error }}</p>
+            {% endfor %}
+                </div>
+              </div>
+
+              <!-- Image Preview Grid -->
+              <div id="imagePreview" class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <!-- Preview images will be inserted here -->
+          </div>
+
+              <!-- Additional Images -->
+              <div class="border rounded-lg p-4 bg-gray-50">
+                <h3 class="text-lg font-medium text-gray-900 mb-4">Additional Images</h3>
+                <div class="space-y-4">
+              {{ formset.management_form }}
+              {% for form in formset %}
+                  <div class="border rounded p-4 bg-white">
+                {{ form.as_p }}
+              </div>
+              {% endfor %}
+                </div>
+            </div>
+          </div>
+
+            <!-- Submit Button -->
+            <div class="flex justify-end pt-6">
+            <button type="submit"
+                class="inline-flex items-center px-6 py-3 bg-teal-600 text-white rounded-lg hover:bg-teal-700 focus:ring-4 focus:ring-teal-500 focus:ring-opacity-50 transition duration-200">
+                <i class="fas fa-check mr-2"></i>
+                List Item
+            </button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- Add this script section at the end of the file -->
+<script>
+  // Image preview functionality
+  document.getElementById('{{ form.image.id_for_label }}').addEventListener('change', function(e) {
+    const preview = document.getElementById('imagePreview');
+    preview.innerHTML = '';
+    
+    for (const file of e.target.files) {
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const div = document.createElement('div');
+        div.className = 'relative group';
+        div.innerHTML = `
+          <img src="${e.target.result}" class="w-full h-32 object-cover rounded-lg" alt="Preview">
+          <div class="absolute inset-0 bg-black bg-opacity-40 opacity-0 group-hover:opacity-100 transition duration-200 rounded-lg flex items-center justify-center">
+            <button type="button" class="text-white hover:text-red-500 transition duration-200">
+              <i class="fas fa-trash"></i>
+            </button>
+          </div>
+        `;
+        preview.appendChild(div);
+      }
+      reader.readAsDataURL(file);
+    }
+  });
+
+  // Form validation and progress steps
+  const form = document.getElementById('listingForm');
+  const steps = document.querySelectorAll('[data-step]');
+  
+  // Initialize datepicker with min date
+  const today = new Date().toISOString().split('T')[0];
+  document.getElementById('{{ form.period.id_for_label }}').min = today;
+
+  // Location autocomplete placeholder
+  // You can integrate with Google Places API here
+</script>
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const locationInput = document.getElementById('{{ form.location.id_for_label }}');
+    const latitudeInput = document.getElementById('latitude');
+    const longitudeInput = document.getElementById('longitude');
+    const useCurrentLocationBtn = document.getElementById('useCurrentLocation');
+
+    useCurrentLocationBtn.addEventListener('click', function() {
+        if (navigator.geolocation) {
+            useCurrentLocationBtn.disabled = true;
+            useCurrentLocationBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i>';
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    
+                    latitudeInput.value = lat;
+                    longitudeInput.value = lon;
+                    
+                    // Reverse geocode to get address
+                    fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            locationInput.value = data.display_name;
+                            useCurrentLocationBtn.disabled = false;
+                            useCurrentLocationBtn.innerHTML = '<i class="fas fa-crosshairs"></i>';
+                        })
+                        .catch(error => {
+                            console.error('Error getting address:', error);
+                            useCurrentLocationBtn.disabled = false;
+                            useCurrentLocationBtn.innerHTML = '<i class="fas fa-crosshairs"></i>';
+                        });
+                },
+                function(error) {
+                    console.error('Error getting location:', error);
+                    useCurrentLocationBtn.disabled = false;
+                    useCurrentLocationBtn.innerHTML = '<i class="fas fa-crosshairs"></i>';
+                    
+                    let errorMessage = 'Error getting your location. ';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage += 'Please enable location access in your browser settings.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage += 'Location information is unavailable.';
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage += 'Location request timed out.';
+                            break;
+                        default:
+                            errorMessage += 'An unknown error occurred.';
+                    }
+                    alert(errorMessage);
+                }
+            );
+        } else {
+            alert('Geolocation is not supported by your browser.');
+        }
+    });
+});
+</script>
+{% endblock %}
+{% endblock %}

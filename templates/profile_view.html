@@ -1,0 +1,48 @@
+{% extends 'header.html' %}
+{% block main %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <!-- Profile Header -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <div class="flex items-center space-x-6">
+                {% if profile.image %}
+                    <img src="{{ profile.image.url }}" alt="{{ profile.first_name }}" class="w-24 h-24 rounded-full object-cover">
+                {% else %}
+                    <div class="w-24 h-24 rounded-full bg-gray-200 flex items-center justify-center">
+                        <span class="text-3xl text-gray-500">{{ profile.first_name|first }}</span>
+                    </div>
+                {% endif %}
+                <div>
+                    <h1 class="text-2xl font-bold text-gray-800">{{ profile.first_name }} {{ profile.last_name }}</h1>
+                    <p class="text-gray-600">{{ profile.city }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- User's Posts -->
+        <h2 class="text-xl font-semibold text-gray-800 mb-6">Available Items</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {% for post in posts %}
+            <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                {% if post.image %}
+                    <img src="{{ post.image.url }}" alt="{{ post.title }}" class="w-full h-48 object-cover">
+                {% endif %}
+                <div class="p-4">
+                    <h3 class="text-lg font-semibold text-gray-800">{{ post.title }}</h3>
+                    <p class="text-gray-600 text-sm mb-2">{{ post.category.name }}</p>
+                    <p class="text-blue-600 font-semibold">₹{{ post.price }}/{{ post.rent_method }}</p>
+                    <a href="{% url 'view_post' post.id %}" 
+                       class="mt-4 block w-full text-center bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700">
+                        View Details
+                    </a>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-span-full text-center py-8">
+                <p class="text-gray-600">No items available at the moment.</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

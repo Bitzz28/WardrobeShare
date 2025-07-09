@@ -1,0 +1,410 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+
+{% block content %}
+<div class="flex min-h-screen bg-gray-50">
+    <!-- Sidebar -->
+    <div class="w-64 bg-white shadow-lg fixed inset-y-0 left-0 z-10">
+        <div class="p-4 border-b">
+            <h2 class="text-xl font-semibold text-gray-800">Lender Dashboard</h2>
+        </div>
+        <nav class="mt-4">
+            <a href="/" class="flex items-center px-4 py-3 text-gray-700 hover:bg-teal-50 transition-colors duration-200">
+                <i class="fas fa-home mr-3"></i>
+                Go to Home Page
+            </a>
+            <a href="/lender/dashboard" class="flex items-center px-4 py-3 text-gray-700 {% if request.path == '/lender/dashboard' %}bg-teal-50 text-teal-600 border-l-4 border-teal-500{% endif %} hover:bg-teal-50 transition-colors duration-200">
+                <i class="fas fa-tachometer-alt mr-3"></i>
+                Dashboard
+            </a>
+            <a href="/post/add" class="flex items-center px-4 py-3 text-gray-700 {% if request.path == '/post/add' %}bg-teal-50 text-teal-600 border-l-4 border-teal-500{% endif %} hover:bg-teal-50 transition-colors duration-200">
+                <i class="fas fa-plus mr-3"></i>
+                Add New Item
+            </a>
+            <a href="/lender/my-items" class="flex items-center px-4 py-3 text-gray-700 {% if request.path == '/lender/my-items' %}bg-teal-50 text-teal-600 border-l-4 border-teal-500{% endif %} hover:bg-teal-50 transition-colors duration-200">
+                <i class="fas fa-list mr-3"></i>
+                My Items
+            </a>
+            <a href="/chat/active" class="flex items-center px-4 py-3 text-gray-700 {% if '/chat/' in request.path %}bg-teal-50 text-teal-600 border-l-4 border-teal-500{% endif %} hover:bg-teal-50 transition-colors duration-200">
+                <i class="fas fa-envelope mr-3"></i>
+                Messages
+            </a>
+            <a href="/lender/contracts" class="flex items-center px-4 py-3 text-gray-700 {% if '/lender/contracts' in request.path %}bg-teal-50 text-teal-600 border-l-4 border-teal-500{% endif %} hover:bg-teal-50 transition-colors duration-200">
+                <i class="fas fa-file-contract mr-3"></i>
+                Contracts
+            </a>
+            <a href="/accounts/profile" class="flex items-center px-4 py-3 text-gray-700 {% if '/accounts/profile' in request.path %}bg-teal-50 text-teal-600 border-l-4 border-teal-500{% endif %} hover:bg-teal-50 transition-colors duration-200">
+                <i class="fas fa-user mr-3"></i>
+                Profile
+            </a>
+            <a href="/notifications" class="flex items-center px-4 py-3 text-gray-700 {% if '/notifications' in request.path %}bg-teal-50 text-teal-600 border-l-4 border-teal-500{% endif %} hover:bg-teal-50 transition-colors duration-200">
+                <i class="fas fa-bell mr-3"></i>
+                Notifications
+            </a>
+        </nav>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="flex-1 ml-64 bg-gradient-to-br from-teal-50 via-white to-white">
+        <div class="p-8">
+            <!-- Header -->
+            <div class="flex justify-between items-center mb-8">
+                <div>
+                    <h1 class="text-3xl font-bold text-gray-800">Welcome, {{ user_profile.user.username }}</h1>
+                    <p class="text-gray-600 mt-1">Manage your wardrobe rentals</p>
+                </div>
+                <a href="/post/add" class="bg-teal-500 text-white px-6 py-2.5 rounded-lg hover:bg-teal-600 flex items-center space-x-2 font-medium transition-colors duration-200">
+                    <i class="fas fa-plus"></i>
+                    <span>Add New Item</span>
+            </a>
+        </div>
+        
+        <!-- Overview Cards -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow duration-200">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-teal-100 rounded-full">
+                            <i class="fas fa-box text-teal-500"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-gray-500 text-sm font-medium">Active Rentals</h3>
+                            <p class="text-2xl font-semibold text-gray-800">{{ active_rentals.count }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow duration-200">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-emerald-100 rounded-full">
+                            <i class="fas fa-calendar-check text-emerald-500"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-gray-500 text-sm font-medium">Upcoming Returns</h3>
+                            <p class="text-2xl font-semibold text-gray-800">{{ upcoming_returns|length }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow duration-200">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-yellow-100 rounded-full">
+                            <i class="fas fa-clock text-yellow-500"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-gray-500 text-sm font-medium">Pending Requests</h3>
+                            <p class="text-2xl font-semibold text-gray-800">{{ pending_requests.count }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-sm p-6 border border-gray-100 hover:shadow-md transition-shadow duration-200">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-purple-100 rounded-full">
+                            <i class="fas fa-dollar-sign text-purple-500"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-gray-500 text-sm font-medium">Total Earnings</h3>
+                            <p class="text-2xl font-semibold text-gray-800">₹{{ total_earnings|default:"0" }}</p>
+            </div>
+            </div>
+            </div>
+            </div>
+
+            <!-- Active Rentals -->
+            <div class="bg-white rounded-xl shadow-sm mb-8 border border-gray-100">
+                <div class="p-6 border-b border-gray-100">
+                    <h2 class="text-2xl font-bold text-gray-800">Active Rentals</h2>
+        </div>
+            <div class="p-6">
+                {% if active_rentals %}
+                <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                        <thead>
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Borrower</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Return Due</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                            </tr>
+                        </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                            {% for rental in active_rentals %}
+                                <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-4">
+                                    <div class="flex items-center">
+                                            <img src="{{ rental.product.image.url }}" alt="{{ rental.product.title }}" class="w-12 h-12 object-cover rounded-lg mr-3">
+                                            <div>
+                                                <p class="font-medium text-gray-900">{{ rental.product.title }}</p>
+                                                <p class="text-sm text-gray-500">₹{{ rental.total }}</p>
+                                            </div>
+                                    </div>
+                                </td>
+                                <td class="px-6 py-4">
+                                        <div class="flex items-center">
+                                            <img src="{{ rental.borrower.profile.profile_picture.url }}" alt="Profile" class="w-8 h-8 rounded-full mr-2">
+                                            <span class="text-gray-900">{{ rental.borrower.username }}</span>
+                                        </div>
+                                </td>
+                                    <td class="px-6 py-4 text-gray-900">{{ rental.return_date|date:"M d, Y" }}</td>
+                                <td class="px-6 py-4">
+                                        <span class="px-2 py-1 rounded-full text-xs font-medium
+                                            {% if rental.days_remaining <= 3 %}bg-red-100 text-red-800
+                                            {% elif rental.days_remaining <= 7 %}bg-yellow-100 text-yellow-800
+                                            {% else %}bg-green-100 text-green-800{% endif %}">
+                                            {{ rental.days_remaining }} days left
+                                    </span>
+                                </td>
+                                <td class="px-6 py-4">
+                                        <div class="flex space-x-3">
+                                            {% if rental.chat_room and rental.chat_room.id %}
+                                            <a href="{% url 'chat_room' rental.chat_room.id %}" class="text-teal-600 hover:text-teal-800">
+                                                <i class="fas fa-comment-alt"></i>
+                                            </a>
+                                            {% endif %}
+                                            {% if rental.id %}
+                                            {% if rental.contract %}
+                                            <a href="{% url 'view_contract' rental.contract.contract_id %}" class="text-teal-600 hover:text-teal-800">
+                                                <i class="fas fa-file-contract"></i>
+                                            </a>
+                                            {% endif %}
+                                            <button 
+                                                type="button"
+                                                onclick="handleReturn('{{ rental.id }}')"
+                                                class="text-green-600 hover:text-green-800">
+                                                <i class="fas fa-check-circle"></i>
+                                            </button>
+                                            {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+                {% else %}
+                    <p class="text-gray-500 text-center py-4">No active rentals at the moment.</p>
+                {% endif %}
+            </div>
+        </div>
+
+            <!-- Rental Requests -->
+            <div class="bg-white rounded-xl shadow-sm mb-8 border border-gray-100">
+                <div class="p-6 border-b border-gray-100">
+                    <h2 class="text-2xl font-bold text-gray-800">Rental Requests</h2>
+                </div>
+            <div class="p-6">
+                {% if pending_requests %}
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {% for request in pending_requests %}
+                        <div class="border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow duration-200">
+                        <div class="flex items-center mb-4">
+                                <img src="{{ request.product.image.url }}" alt="{{ request.product.title }}" class="w-16 h-16 object-cover rounded-lg mr-4">
+                            <div>
+                                    <h3 class="font-semibold text-gray-900">{{ request.product.title }}</h3>
+                                <p class="text-sm text-gray-500">Requested: {{ request.created_at|date:"M d, Y" }}</p>
+                            </div>
+                            </div>
+                            <div class="space-y-3 mb-4">
+                                <p class="text-sm"><span class="font-medium text-gray-700">Borrower:</span> {{ request.borrower.username }}</p>
+                                <p class="text-sm"><span class="font-medium text-gray-700">Duration:</span> {{ request.start_date|date:"M d, Y" }} to {{ request.end_date|date:"M d, Y" }}</p>
+                                <p class="text-sm"><span class="font-medium text-gray-700">Total Amount:</span> ₹{{ request.total_amount }}</p>
+                                <p class="text-sm"><span class="font-medium text-gray-700">Pickup Address:</span> {{ request.pickup_address }}</p>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div class="space-x-3">
+                                    <button 
+                                        type="button"
+                                        onclick="handleRentalRequest('{{ request.id }}', 'approve')"
+                                        class="bg-teal-500 text-white px-4 py-2 rounded-lg hover:bg-teal-600 transition-colors duration-200">
+                                        <i class="fas fa-check mr-2"></i> Approve
+                                    </button>
+                                    <button 
+                                        type="button"
+                                        onclick="handleRentalRequest('{{ request.id }}', 'decline')"
+                                        class="bg-red-500 text-white px-4 py-2 rounded-lg hover:bg-red-600 transition-colors duration-200">
+                                        <i class="fas fa-times mr-2"></i> Decline
+                                    </button>
+                                </div>
+                                {% if request.chat_room and request.chat_room.id %}
+                                <a href="{% url 'chat_room' request.chat_room.id %}" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition-colors duration-200">
+                                    <i class="fas fa-comment-alt mr-2"></i> Chat
+                                </a>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-gray-500 text-center py-4">No pending rental requests.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Digital Contracts -->
+            <div class="bg-white rounded-xl shadow-sm mb-8 border border-gray-100">
+                <div class="p-6 border-b border-gray-100">
+                    <h2 class="text-2xl font-bold text-gray-800">Digital Contracts</h2>
+        </div>
+            <div class="p-6">
+                    {% if contracts %}
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead>
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Contract ID</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Borrower</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Item</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Created Date</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                {% for contract in contracts %}
+                                <tr class="hover:bg-gray-50">
+                                    <td class="px-6 py-4 text-sm text-gray-900">{{ contract.id }}</td>
+                                    <td class="px-6 py-4">
+                    <div class="flex items-center">
+                                            <img src="{{ contract.borrower.profile.profile_picture.url }}" alt="Profile" class="w-8 h-8 rounded-full mr-2">
+                                            <span class="text-gray-900">{{ contract.borrower.username }}</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-gray-900">{{ contract.rental.product.title }}</td>
+                                    <td class="px-6 py-4 text-gray-900">{{ contract.created_at|date:"M d, Y" }}</td>
+                                    <td class="px-6 py-4">
+                                        <span class="px-2 py-1 rounded-full text-xs font-medium
+                                            {% if contract.status == 'active' %}bg-green-100 text-green-800
+                                            {% elif contract.status == 'completed' %}bg-blue-100 text-blue-800
+                                            {% else %}bg-gray-100 text-gray-800{% endif %}">
+                                            {{ contract.status|title }}
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex space-x-3">
+                                            <a href="{% url 'view_contract' contract.contract_id %}" class="text-teal-600 hover:text-teal-800">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="{% url 'download_contract' contract.contract_id %}" class="text-teal-600 hover:text-teal-800">
+                                                <i class="fas fa-download"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-gray-500 text-center py-4">No contracts available.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Reviews & Ratings -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-100">
+                <div class="p-6 border-b border-gray-100">
+                    <h2 class="text-2xl font-bold text-gray-800">Reviews & Ratings</h2>
+                </div>
+                <div class="p-6">
+                    {% if reviews %}
+                    <div class="space-y-6">
+                        {% for review in reviews %}
+                        <div class="border-b border-gray-200 pb-6 last:border-0">
+                            <div class="flex items-center mb-3">
+                                <img src="{{ review.product.image.url }}" alt="{{ review.product.title }}" class="w-12 h-12 object-cover rounded-lg mr-3">
+                            <div>
+                                    <p class="font-semibold text-gray-900">{{ review.product.title }}</p>
+                                <div class="flex text-yellow-500">
+                                    {% for i in "12345"|make_list %}
+                                    <i class="fas fa-star{% if forloop.counter > review.rating %}-o{% endif %}"></i>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        </div>
+                        <p class="text-gray-600">{{ review.comment }}</p>
+                            <p class="text-sm text-gray-500 mt-2">By {{ review.borrower.username }} on {{ review.created_at|date:"M d, Y" }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                    <p class="text-gray-500 text-center py-4">No reviews yet.</p>
+                {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function handleRentalRequest(requestId, action) {
+    if (!confirm(`Are you sure you want to ${action} this rental request?`)) {
+        return;
+    }
+    
+    fetch(`/rental/handle-request/${requestId}/${action}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(
+                `Successfully ${action}d the rental request`, 
+                'success'
+            );
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showNotification(
+                data.message || `Error ${action}ing request`, 
+                'error'
+            );
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification(
+            `Error ${action}ing request. Please try again.`, 
+            'error'
+        );
+    });
+}
+
+function handleReturn(rentalId) {
+    if (!confirm('Are you sure you want to mark this item as returned?')) {
+        return;
+    }
+    
+    fetch(`/rental/mark-returned/${rentalId}/`, {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+            'Content-Type': 'application/json'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            showNotification(
+                'Successfully marked item as returned', 
+                'success'
+            );
+            setTimeout(() => location.reload(), 1000);
+        } else {
+            showNotification(
+                data.message || 'Error marking item as returned', 
+                'error'
+            );
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        showNotification(
+            'Error marking item as returned. Please try again.', 
+            'error'
+        );
+    });
+}
+</script>
+{% endblock %} 
