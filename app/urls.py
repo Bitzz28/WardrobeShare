@@ -36,7 +36,7 @@ urlpatterns = [
     path('order/<str:ecommerce_id>/',views.orderdetails),
     path('order/<int:id>/<int:q>/',views.makeorder),
     path('order/cancel/<int:id>',views.cancelorder),
-    path('order/return/<int:id>',views.returnorder),
+    path('order/return/<int:id>',views.approve_return, name='approve_return'),
     path('order/payment/<str:id>/',views.orderpayment),
     
     path('order/payment/success/<str:pay>/<str:id>',views.paysuccess),
@@ -112,4 +112,9 @@ urlpatterns = [
     path('send-contract/', views.send_contract, name='send_contract'),
 
     path('add-to-contract/', views.add_to_contract, name='add_to_contract'),
+    
+    # Pickup Schedule URLs - Commented out as views are not implemented yet
+    # path('pickup/schedule/<int:chat_room_id>/', views.create_pickup_schedule, name='create_pickup_schedule'),
+    # path('pickup/accept/<int:schedule_id>/', views.accept_pickup_schedule, name='accept_pickup_schedule'),
+    # path('pickup/reschedule/<int:schedule_id>/', views.reschedule_pickup, name='reschedule_pickup'),
 ]

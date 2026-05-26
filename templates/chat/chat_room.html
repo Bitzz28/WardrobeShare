@@ -17,17 +17,18 @@
                     <!-- Modified chat container with fixed height and scrollbar -->
                     <div class="h-[500px] overflow-y-auto p-4" id="chat-container">
                         <div id="messages" class="space-y-4">
-                {% for message in messages %}
+                            {% for message in messages %}
                                 {% if message.message_type == 'text' %}
-                                    <div class="flex {% if message.sender == request.user %}justify-end{% else %}justify-start{% endif %}">
+                                    <div class="flex {% if message.sender == request.user %}justify-end{% else %}justify-start{% endif %} chat-message"
+                                         data-message-id="{{ message.id }}">
                                         <div class="max-w-[70%] {% if message.sender == request.user %}bg-blue-600 text-white rounded-l-lg rounded-tr-lg{% else %}bg-gray-100 text-gray-800 rounded-r-lg rounded-tl-lg{% endif %} p-3">
-                        <p class="text-sm">{{ message.message }}</p>
+                                            <p class="text-sm">{{ message.message }}</p>
                                             <p class="text-xs mt-1 opacity-75">{{ message.timestamp|date:"g:i A" }}</p>
-                    </div>
-                </div>
+                                        </div>
+                                    </div>
                                 {% endif %}
-                {% endfor %}
-            </div>
+                            {% endfor %}
+                        </div>
                     </div>
                     <div class="p-4 border-t">
                 <form id="message-form" class="flex space-x-4">
@@ -44,21 +45,6 @@
             <div class="lg:col-span-1">
                 {% if request.user == chat_room.order.product.user %}
                 <!-- Lender View -->
-                    <!-- Digital Contract Section -->
-                    <div class="bg-white rounded-lg shadow-lg mb-4 border-2 border-blue-500">
-                        <div class="bg-blue-600 text-white p-4 rounded-t-lg flex items-center justify-between">
-                            <h5 class="text-lg font-semibold flex items-center"><i class="fas fa-file-contract mr-2"></i>Digital Contract</h5>
-                            <span class="bg-green-100 text-green-800 text-xs font-semibold px-3 py-1 rounded-full">Next Step</span>
-                        </div>
-                        <div class="p-4 flex flex-col items-center">
-                            <p class="text-gray-700 mb-4 text-center font-medium">Approve the rental request? Now send a digital contract to the borrower and start messaging below.</p>
-                            <a href="{% url 'digital_contract' chat_room.id %}" class="inline-flex items-center bg-gradient-to-r from-blue-500 to-blue-700 text-white px-6 py-3 rounded-lg shadow-lg hover:from-blue-600 hover:to-blue-800 focus:outline-none focus:ring-2 focus:ring-blue-500 text-lg font-semibold mb-2">
-                                <i class="fas fa-paper-plane mr-2"></i>Send Digital Contract
-                            </a>
-                            <p class="text-sm text-gray-500 mt-2">You can also chat with the borrower using the messaging section.</p>
-                        </div>
-                    </div>
-
                     <!-- Contract Modal -->
                     <div id="contractModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 hidden">
                         <div class="absolute inset-0 flex items-center justify-center p-4">
@@ -362,8 +348,18 @@
                                     {% endif %}
                                 </div>
                             {% else %}
-                                <div class="text-center py-4">
-                                    <p class="text-gray-600">Waiting for contract from lender</p>
+                                <div class="text-center py-6 space-y-3">
+                                    <p class="text-gray-700 font-medium">
+                                        No digital contract has been created yet.
+                                    </p>
+                                    <p class="text-sm text-gray-500">
+                                        Create and send a digital contract so the borrower can review and fill their details.
+                                    </p>
+                                    <a href="{% url 'digital_contract' chat_room.id %}"
+                                       class="inline-flex items-center px-5 py-2.5 text-sm font-semibold text-white bg-blue-600 rounded-lg shadow hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                        <i class="fas fa-file-contract mr-2"></i>
+                                        Send Digital Contract
+                                    </a>
                                 </div>
                             {% endif %}
                         </div>
@@ -429,54 +425,97 @@
                                 {% if latest_govt_id %}
                                     <div class="space-y-4">
                                         <div class="flex justify-between items-center">
-                <div>
-                                                <p class="text-sm text-gray-600">Status: <span class="font-medium {% if latest_govt_id.acceptance_status == 'accepted' %}text-green-600{% elif latest_govt_id.acceptance_status == 'pending' %}text-yellow-600{% else %}text-red-600{% endif %}">{{ latest_govt_id.acceptance_status|title }}</span></p>
-                                                <p class="text-sm text-gray-600">Submitted: {{ latest_govt_id.created_at|date:"M d, Y H:i" }}</p>
-                        </div>
+                                            <div>
+                                                <p class="text-sm text-gray-600">
+                                                    Status:
+                                                    <span class="font-medium {% if latest_govt_id.acceptance_status == 'accepted' %}text-green-600{% elif latest_govt_id.acceptance_status == 'pending' %}text-yellow-600{% else %}text-red-600{% endif %}">
+                                                        {{ latest_govt_id.acceptance_status|title }}
+                                                    </span>
+                                                </p>
+                                                <p class="text-sm text-gray-600">
+                                                    Requested: {{ latest_govt_id.created_at|date:"M d, Y H:i" }}
+                                                </p>
+                                            </div>
                                             {% if latest_govt_id.acceptance_status == 'rejected' %}
                                                 <button onclick="resubmitGovtId()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
                                                     Resubmit ID
                                                 </button>
                                             {% endif %}
-                        </div>
+                                        </div>
 
-                                        {% if latest_govt_id.id_document %}
+                                        {% if not latest_govt_id.id_document %}
+                                            {# Borrower has a pending request but hasn't uploaded yet – show upload form #}
+                                            <form id="govt-id-form" class="space-y-3" onsubmit="submitGovtId(event)">
+                                                <input type="hidden" name="chat_room_id" value="{{ chat_room.id }}">
+                                                <input type="hidden" name="type" value="govt_id">
+                                                <div>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                                                        Upload Government ID
+                                                    </label>
+                                                    <input type="file"
+                                                           name="govt_id"
+                                                           accept="image/*"
+                                                           required
+                                                           class="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                                    <p class="mt-1 text-xs text-gray-500">
+                                                        Upload a clear photo of your government-issued ID.
+                                                    </p>
+                                                </div>
+                                                <button type="submit"
+                                                        class="inline-flex items-center px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                                    <i class="fas fa-upload mr-2"></i>
+                                                    Submit ID
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            {# ID already uploaded – show preview #}
                                             <div class="mt-4">
                                                 <h6 class="font-semibold mb-2">ID Document</h6>
-                                                <div class="relative group cursor-pointer" onclick="openImageModal('{{ latest_govt_id.id_document.url }}', 'Government ID')">
-                                                    <img src="{{ latest_govt_id.id_document.url }}" alt="Government ID" 
+                                                <div class="relative group cursor-pointer"
+                                                     onclick="openImageModal('{{ latest_govt_id.id_document.url }}', 'Government ID')">
+                                                    <img src="{{ latest_govt_id.id_document.url }}"
+                                                         alt="Government ID"
                                                          class="w-full h-32 object-cover rounded transition-transform duration-200 group-hover:scale-[1.02]">
                                                     <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200">
                                                         <span class="text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-200 font-medium">
                                                             Click to view full size
                                                         </span>
-                    </div>
-                </div>
-                </div>
-                                    {% endif %}
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        {% endif %}
                                     </div>
-                            {% else %}
-                                <div class="text-center py-4">
-                                        <p class="text-gray-600">Waiting for lender to request government ID verification</p>
-                </div>
-                            {% endif %}
+                                {% else %}
+                                    <div class="text-center py-4">
+                                        <p class="text-gray-600">
+                                            Waiting for lender to request government ID verification
+                                        </p>
+                                    </div>
+                                {% endif %}
                             {% endwith %}
-                </div>
-                </div>
+                        </div>
+                    </div>
 
                     <!-- Selfie Verification Section -->
                     <div class="bg-white rounded-lg shadow-lg">
                         <div class="bg-blue-600 text-white p-4 rounded-t-lg">
                             <h5 class="text-lg font-semibold">Selfie Verification</h5>
-            </div>
+                        </div>
                         <div class="p-4">
                             {% with latest_selfie=selfie_verifications.first %}
                                 {% if latest_selfie %}
                                     <div class="space-y-4">
                                         <div class="flex justify-between items-center">
                                             <div>
-                                                <p class="text-sm text-gray-600">Status: <span class="font-medium {% if latest_selfie.acceptance_status == 'accepted' %}text-green-600{% elif latest_selfie.acceptance_status == 'pending' %}text-yellow-600{% else %}text-red-600{% endif %}">{{ latest_selfie.acceptance_status|title }}</span></p>
-                                                <p class="text-sm text-gray-600">Submitted: {{ latest_selfie.created_at|date:"M d, Y H:i" }}</p>
+                                                <p class="text-sm text-gray-600">
+                                                    Status:
+                                                    <span class="font-medium {% if latest_selfie.acceptance_status == 'accepted' %}text-green-600{% elif latest_selfie.acceptance_status == 'pending' %}text-yellow-600{% else %}text-red-600{% endif %}">
+                                                        {{ latest_selfie.acceptance_status|title }}
+                                                    </span>
+                                                </p>
+                                                <p class="text-sm text-gray-600">
+                                                    Requested: {{ latest_selfie.created_at|date:"M d, Y H:i" }}
+                                                </p>
                                             </div>
                                             {% if latest_selfie.acceptance_status == 'rejected' %}
                                                 <button onclick="resubmitSelfie()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500">
@@ -485,7 +524,31 @@
                                             {% endif %}
                                         </div>
 
-                                        {% if latest_selfie.selfie %}
+                                        {% if not latest_selfie.selfie %}
+                                            {# Borrower has pending selfie request but hasn't uploaded yet #}
+                                            <form id="selfie-form" class="space-y-3" onsubmit="submitSelfie(event)">
+                                                <input type="hidden" name="chat_room_id" value="{{ chat_room.id }}">
+                                                <input type="hidden" name="type" value="selfie">
+                                                <div>
+                                                    <label class="block text-sm font-medium text-gray-700 mb-1">
+                                                        Upload Selfie
+                                                    </label>
+                                                    <input type="file"
+                                                           name="selfie"
+                                                           accept="image/*"
+                                                           required
+                                                           class="block w-full text-sm text-gray-700 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100">
+                                                    <p class="mt-1 text-xs text-gray-500">
+                                                        Upload a clear selfie photo for verification.
+                                                    </p>
+                                                </div>
+                                                <button type="submit"
+                                                        class="inline-flex items-center px-4 py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500">
+                                                    <i class="fas fa-upload mr-2"></i>
+                                                    Submit Selfie
+                                                </button>
+                                            </form>
+                                        {% else %}
                                             <div class="mt-4">
                                                 <h6 class="font-semibold mb-2">Selfie Photo</h6>
                                                 <div class="relative group cursor-pointer" onclick="openImageModal('{{ latest_selfie.selfie.url }}', 'Selfie')">
@@ -501,13 +564,13 @@
                                         {% endif %}
                                     </div>
                                 {% else %}
-                            <div class="text-center py-4">
+                                    <div class="text-center py-4">
                                         <p class="text-gray-600">Waiting for lender to request selfie verification</p>
-            </div>
+                                    </div>
                                 {% endif %}
                             {% endwith %}
                         </div>
-                </div>
+                    </div>
                 {% endif %}
             </div>
         </div>
@@ -534,9 +597,13 @@
 </div>
 
 <script>
-    // Get CSRF token from the cookie
+    // Basic setup
     const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
     const messagesDiv = document.getElementById('messages');
+    const chatContainer = document.getElementById('chat-container');
+    const messageForm = document.getElementById('message-form');
+    const messageInput = document.getElementById('message-input');
+    const chatRoomId = {{ chat_room.id }};
 
     // File Preview Handling
     document.getElementById('govtId')?.addEventListener('change', function(e) {
@@ -1009,36 +1076,104 @@
         );
     }
 
-    // Function to scroll chat to bottom
+    // Scroll helpers
     function scrollToBottom() {
-        const chatContainer = document.getElementById('chat-container');
+        if (!chatContainer) return;
         chatContainer.scrollTop = chatContainer.scrollHeight;
     }
 
-    // Scroll to bottom on page load
-    document.addEventListener('DOMContentLoaded', function() {
-        scrollToBottom();
-    });
+    document.addEventListener('DOMContentLoaded', scrollToBottom);
 
-    // Modify the existing message sending code to scroll to bottom after sending
-    document.getElementById('message-form').addEventListener('submit', function(e) {
-        e.preventDefault();
-        const messageInput = document.getElementById('message-input');
-        const message = messageInput.value.trim();
-        
-        if (message) {
-            // Your existing message sending code here
-            
-            // Clear input and scroll to bottom
-            messageInput.value = '';
-            setTimeout(scrollToBottom, 100); // Small delay to ensure new message is rendered
-        }
-    });
+    // ---- Core chat messaging (send + poll) ----
 
-    // Also scroll to bottom when receiving new messages (if using WebSocket or polling)
-    function handleNewMessage() {
-        setTimeout(scrollToBottom, 100);
+    // Send a new text message
+    if (messageForm) {
+        messageForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            const text = messageInput.value.trim();
+            if (!text) return;
+
+            fetch('/send_message/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                },
+                body: JSON.stringify({
+                    chat_id: chatRoomId,
+                    message: text
+                })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.message) {
+                        // Render own message immediately
+                        const msg = data.message;
+                        const wrapper = document.createElement('div');
+                        wrapper.className = 'flex justify-end chat-message';
+                        wrapper.dataset.messageId = msg.id;
+                        wrapper.innerHTML = `
+                            <div class="max-w-[70%] bg-blue-600 text-white rounded-l-lg rounded-tr-lg p-3">
+                                <p class="text-sm">${msg.message}</p>
+                                <p class="text-xs mt-1 opacity-75">${new Date(msg.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</p>
+                            </div>
+                        `;
+                        messagesDiv.appendChild(wrapper);
+                        messageInput.value = '';
+                        scrollToBottom();
+                    }
+                })
+                .catch(err => {
+                    console.error('Error sending message:', err);
+                    if (window.showNotification) {
+                        window.showNotification('Failed to send message. Please try again.', 'error');
+                    }
+                });
+        });
     }
+
+    // Poll for new messages from the other user
+    function getLastMessageId() {
+        const last = messagesDiv.querySelector('.chat-message:last-of-type');
+        return last ? parseInt(last.dataset.messageId, 10) : null;
+    }
+
+    function pollMessages() {
+        const lastId = getLastMessageId();
+
+        fetch(`/chat/${chatRoomId}/messages/`)
+            .then(res => res.json())
+            .then(data => {
+                if (!data.messages) return;
+                const newMessages = lastId
+                    ? data.messages.filter(m => m.id > lastId)
+                    : data.messages;
+
+                newMessages.forEach(msg => {
+                    const isOwn = msg.sender && msg.sender.id === {{ request.user.id }};
+                    const wrapper = document.createElement('div');
+                    wrapper.className = `flex ${isOwn ? 'justify-end' : 'justify-start'} chat-message`;
+                    wrapper.dataset.messageId = msg.id;
+                    wrapper.innerHTML = `
+                        <div class="max-w-[70%] ${isOwn ? 'bg-blue-600 text-white rounded-l-lg rounded-tr-lg' : 'bg-gray-100 text-gray-800 rounded-r-lg rounded-tl-lg'} p-3">
+                            <p class="text-sm">${msg.message}</p>
+                            <p class="text-xs mt-1 opacity-75">${new Date(msg.timestamp).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' })}</p>
+                        </div>
+                    `;
+                    messagesDiv.appendChild(wrapper);
+                });
+
+                if (newMessages.length) {
+                    scrollToBottom();
+                }
+            })
+            .catch(err => {
+                console.error('Error polling messages:', err);
+            });
+    }
+
+    // Start polling every 5 seconds
+    setInterval(pollMessages, 5000);
 
     // Contract Modal Functions
     function openContractModal() {

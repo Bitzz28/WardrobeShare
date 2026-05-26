@@ -161,6 +161,7 @@ class Order(models.Model):
     rent_start = models.DateField()
     rent_end = models.DateField()
     qrcode = models.ImageField(upload_to='qrcodes/', null=True, blank=True)
+    funds_released = models.BooleanField(default=False)
 class DeliveryType(models.Model):
     name = models.CharField(max_length=20)
     description = models.TextField(blank=True)
@@ -299,6 +300,31 @@ class DigitalContract(models.Model):
         related_name='verified_contracts'
     )
     verified_at = models.DateTimeField(null=True, blank=True)
+    
+    # Rental & financial terms
+    rent_start = models.DateField(null=True, blank=True)
+    rent_end = models.DateField(null=True, blank=True)
+    rental_price = models.FloatField(null=True, blank=True)
+    contract_security_deposit = models.FloatField(
+        null=True,
+        blank=True,
+        help_text='Security deposit amount agreed in this contract'
+    )
+    late_fees = models.FloatField(
+        null=True,
+        blank=True,
+        help_text='Late fee per day'
+    )
+    damage_penalties = models.TextField(
+        null=True,
+        blank=True,
+        help_text='Description of damage penalties'
+    )
+    additional_terms = models.TextField(
+        null=True,
+        blank=True,
+        help_text='Any additional terms or conditions'
+    )
     
     # Signatures
     lender_signature = models.CharField(max_length=100, null=True, blank=True)

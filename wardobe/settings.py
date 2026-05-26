@@ -153,7 +153,7 @@ AUTHENTICATION_BACKENDS = (
 
 
 ACCOUNT_EMAIL_REQUIRED=True
-ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
+ACCOUNT_EMAIL_VERIFICATION = 'none'
 ACCOUNT_UNIQUE_EMAIL=True
 ACCOUNT_AUTHENTICATION_METHOD='email'
 
@@ -171,3 +171,20 @@ EMAIL_HOST_PASSWORD = 'zyjslpqrpovklfop'  # App Password
 
 # Site URL
 SITE_URL = 'http://localhost:8000'
+
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'APP': {
+            'client_id': 'YOUR_GOOGLE_CLIENT_ID',
+            'secret': 'YOUR_GOOGLE_CLIENT_SECRET',
+            'key': ''
+        }
+    }
+}

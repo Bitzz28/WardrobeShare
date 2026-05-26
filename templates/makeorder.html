@@ -2,79 +2,190 @@
 {% load static %}
 
 {% block content %}
-<div class="min-h-screen bg-gray-100 flex flex-col justify-start items-center pt-8 pb-6">
-    <div class="w-full max-w-4xl">
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-            <!-- Product Summary Card -->
-            <div class="bg-white shadow-lg rounded-3xl p-6 flex flex-col items-center">
-                <img src="{{ post.image.url }}" alt="{{ post.title }}" class="w-48 h-48 object-cover rounded-lg mb-4">
-                <h2 class="text-xl font-bold text-gray-900 mb-2 text-center">{{ post.title }}</h2>
-                <p class="text-gray-700 text-center mb-2">{{ post.description }}</p>
-                <div class="flex items-center justify-center mb-2">
-                    <span class="text-2xl font-bold text-purple-700">₹{{ post.price }}</span>
-                    <span class="ml-1 text-gray-600">/ {{ post.rent_method }}</span>
-                </div>
-                <p class="text-sm text-gray-500 mb-2">Location: {{ post.location }}</p>
-                {% if post.security_deposit %}
-                <p class="text-sm text-gray-500">Security Deposit: ₹{{ post.security_deposit }}</p>
-                {% endif %}
+<div class="w-full bg-gradient-to-br from-teal-50 via-white to-purple-50 py-8">
+    <div class="max-w-5xl mx-auto px-4">
+        <!-- Page Heading / Breadcrumb -->
+        <div class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div>
+                <p class="text-sm text-gray-500">Borrower · Rental request</p>
+                <h1 class="text-2xl md:text-3xl font-bold text-gray-900 mt-1">
+                    Confirm your rental for
+                    <span class="text-teal-600">{{ post.title }}</span>
+                </h1>
             </div>
-            <!-- Rental Request Form -->
-            <div class="relative px-4 py-10 bg-white shadow-lg rounded-3xl sm:p-10 flex flex-col justify-center">
-                <div class="max-w-md mx-auto w-full">
-                    <div class="divide-y divide-gray-200">
-                        <div class="py-4 text-base leading-6 space-y-4 text-gray-700 sm:text-lg sm:leading-7">
-                            <h2 class="text-2xl font-bold mb-6 text-center">Rental Request</h2>
-                            <form id="orderForm" method="POST" class="space-y-4">
-                                {% csrf_token %}
+            <a href="/post/view/{{ post.id }}/"
+               class="inline-flex items-center text-sm text-gray-600 hover:text-gray-900">
+                <i class="fas fa-arrow-left mr-2"></i>
+                Back to item
+            </a>
+        </div>
+
+        <!-- Main Layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-5 gap-8 items-start">
+            <!-- Left: Product Summary -->
+            <section class="lg:col-span-2">
+                <div class="bg-white/90 backdrop-blur shadow-lg rounded-3xl overflow-hidden border border-gray-100">
+                    <div class="relative">
+                        <div class="aspect-[4/3] bg-gray-100">
+                            <img src="{{ post.image.url }}"
+                                 alt="{{ post.title }}"
+                                 class="w-full h-full object-cover">
+                        </div>
+                        <div class="absolute top-3 left-3 inline-flex items-center px-3 py-1 rounded-full bg-teal-600/90 text-xs font-semibold text-white shadow">
+                            <i class="fas fa-shield-alt mr-1"></i> Secure rental
+                        </div>
+                    </div>
+
+                    <div class="p-6 space-y-4">
+                        <div>
+                            <h2 class="text-xl font-semibold text-gray-900 mb-1">{{ post.title }}</h2>
+                            <p class="text-sm text-gray-600 line-clamp-3">{{ post.description }}</p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            <div class="space-y-1">
+                                <p class="text-gray-500">Price</p>
+                                <p class="text-lg font-bold text-purple-700">
+                                    ₹{{ post.price }}
+                                    <span class="text-xs font-medium text-gray-500">/ {{ post.rent_method }}</span>
+                                </p>
+                            </div>
+                            <div class="space-y-1">
+                                <p class="text-gray-500">Location</p>
+                                <p class="font-medium text-gray-800 truncate">
+                                    <i class="fas fa-map-marker-alt text-red-400 mr-1"></i>
+                                    {{ post.location }}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4 text-sm">
+                            {% if post.security_deposit %}
+                            <div class="space-y-1">
+                                <p class="text-gray-500">Security deposit</p>
+                                <p class="font-semibold text-gray-900">₹{{ post.security_deposit }}</p>
+                            </div>
+                            {% endif %}
+                            <div class="space-y-1">
+                                <p class="text-gray-500">Quantity</p>
+                                <p class="font-semibold text-gray-900">x{{ post.quantity }}</p>
+                            </div>
+                        </div>
+
+                        <div class="rounded-2xl bg-gray-50 px-4 py-3 text-xs text-gray-600 space-y-1">
+                            <p class="font-semibold text-gray-800 flex items-center">
+                                <i class="fas fa-info-circle text-teal-500 mr-2"></i>
+                                Request will be sent to the lender for approval
+                            </p>
+                            <p>
+                                You’ll only be charged after the lender accepts your request and you complete payment.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Right: Rental Form -->
+            <section class="lg:col-span-3">
+                <div class="bg-white/95 backdrop-blur shadow-xl rounded-3xl border border-gray-100 p-6 md:p-8">
+                    <!-- Step indicator -->
+                    <div class="flex items-center justify-between mb-6">
+                        <div class="flex items-center gap-2 text-sm text-gray-600">
+                            <span class="inline-flex items-center justify-center w-8 h-8 rounded-full bg-teal-600 text-white text-sm font-semibold">1</span>
+                            <span class="font-medium text-gray-800">Rental details</span>
+                            <span class="mx-1 text-gray-400">•</span>
+                            <span class="text-gray-500">Then lender reviews & approves</span>
+                        </div>
+                    </div>
+
+                    <form id="orderForm" method="POST" class="space-y-6">
+                        {% csrf_token %}
+
+                        <!-- Rental period -->
+                        <div>
+                            <h3 class="text-sm font-semibold text-gray-800 mb-2">Rental period</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div>
-                                    <label class="block text-sm font-medium text-gray-700">Rental Period</label>
-                                    <div class="grid grid-cols-2 gap-4">
-                                        <div>
-                                            <label class="block text-xs text-gray-500">Start Date</label>
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">Start date</label>
+                                    <div class="relative">
+                                        <i class="fas fa-calendar-alt absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                                        <div class="pl-9">
                                             {{ form.rent_start }}
                                         </div>
-                                        <div>
-                                            <label class="block text-xs text-gray-500">End Date</label>
+                                    </div>
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">End date</label>
+                                    <div class="relative">
+                                        <i class="fas fa-calendar-check absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 text-sm"></i>
+                                        <div class="pl-9">
                                             {{ form.rent_end }}
                                         </div>
                                     </div>
                                 </div>
-                                <div>
-                                    <label class="block text-sm font-medium text-gray-700">Contact Information</label>
-                                    <div class="space-y-4">
-                                        <div>
-                                            <label class="block text-xs text-gray-500">Full Name</label>
-                                            {{ form.full_name }}
-                                        </div>
-                                        <div>
-                                            <label class="block text-xs text-gray-500">Mobile Number</label>
-                                            {{ form.mobile_no }}
-                                        </div>
-                                        <div>
-                                            <label class="block text-xs text-gray-500">Alternate Number (Optional)</label>
-                                            {{ form.alternate_no }}
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="mt-6">
-                                    <button type="submit" class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                        Submit Request
-                                    </button>
-                                </div>
-                            </form>
+                            </div>
+                            <p class="mt-2 text-xs text-gray-500">
+                                Make sure your end date is within the item’s available period.
+                            </p>
                         </div>
-                    </div>
+
+                        <hr class="border-gray-100">
+
+                        <!-- Contact information -->
+                        <div class="space-y-4">
+                            <h3 class="text-sm font-semibold text-gray-800">Contact information</h3>
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div class="md:col-span-2">
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">Full name</label>
+                                    {{ form.full_name }}
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">Mobile number</label>
+                                    {{ form.mobile_no }}
+                                </div>
+                                <div>
+                                    <label class="block text-xs font-medium text-gray-500 mb-1">
+                                        Alternate number
+                                        <span class="text-gray-400">(optional)</span>
+                                    </label>
+                                    {{ form.alternate_no }}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Error placeholder -->
+                        <div id="formErrors" class="hidden rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"></div>
+
+                        <!-- Submit -->
+                        <div class="pt-2 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+                            <p class="text-xs text-gray-500">
+                                By submitting, you’re sending a request only. The lender must approve before any payment.
+                            </p>
+                            <button type="submit"
+                                    class="inline-flex items-center justify-center px-6 py-2.5 rounded-full text-sm font-semibold text-white bg-teal-600 hover:bg-teal-700 shadow-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-teal-500">
+                                <i class="fas fa-paper-plane mr-2"></i>
+                                Send rental request
+                            </button>
+                        </div>
+                    </form>
                 </div>
-            </div>
+            </section>
         </div>
     </div>
 </div>
 
 <script>
-document.getElementById('orderForm').addEventListener('submit', function(e) {
+document.getElementById('orderForm').addEventListener('submit', function (e) {
     e.preventDefault();
+
+    // Clear previous inline errors
+    document.querySelectorAll('.field-error').forEach(el => el.remove());
+    const formErrors = document.getElementById('formErrors');
+    formErrors.classList.add('hidden');
+    formErrors.textContent = '';
+
     const formData = new FormData(this);
+
     fetch(window.location.href, {
         method: 'POST',
         body: formData,
@@ -82,31 +193,54 @@ document.getElementById('orderForm').addEventListener('submit', function(e) {
             'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
         }
     })
-    .then(response => response.json())
-    .then(data => {
-        if (data.status === 'success') {
-            // Show a custom styled notification
-            const notif = document.createElement('div');
-            notif.className = 'fixed top-8 left-1/2 transform -translate-x-1/2 z-50 bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg shadow-lg text-lg font-semibold flex items-center gap-2';
-            notif.innerHTML = `<svg class='w-6 h-6 text-green-600 mr-2' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 13l4 4L19 7'/></svg> Your rental request has been sent successfully! The lender will review your request.`;
-            document.body.appendChild(notif);
-            setTimeout(() => { notif.remove(); window.location.href = data.redirect_url; }, 2500);
-        } else {
-            if (data.errors) {
+        .then(response => response.json())
+        .then(data => {
+            if (data.status === 'success') {
+                // Prefer global notification system if available
+                if (window.showNotification) {
+                    window.showNotification(
+                        'Your rental request has been sent successfully! The lender will review your request.',
+                        'success'
+                    );
+                } else {
+                    const notif = document.createElement('div');
+                    notif.className = 'fixed top-8 left-1/2 transform -translate-x-1/2 z-50 bg-green-100 border border-green-400 text-green-700 px-6 py-4 rounded-lg shadow-lg text-sm font-semibold flex items-center gap-2';
+                    notif.innerHTML = "<svg class='w-5 h-5 text-green-600' fill='none' stroke='currentColor' viewBox='0 0 24 24'><path stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M5 13l4 4L19 7'/></svg><span>Your rental request has been sent successfully! The lender will review your request.</span>";
+                    document.body.appendChild(notif);
+                    setTimeout(() => notif.remove(), 2500);
+                }
+
+                setTimeout(() => {
+                    window.location.href = data.redirect_url;
+                }, 1800);
+            } else if (data.errors) {
+                // Show summary box
+                formErrors.classList.remove('hidden');
+                formErrors.textContent = 'Please correct the highlighted fields below.';
+
+                // Attach field-level messages
                 Object.keys(data.errors).forEach(field => {
+                    const input = document.querySelector(`[name="${field}"]`);
+                    if (!input) return;
+
                     const errorDiv = document.createElement('div');
-                    errorDiv.className = 'text-red-500 text-sm mt-1';
+                    errorDiv.className = 'field-error text-xs text-red-600 mt-1';
                     errorDiv.textContent = data.errors[field];
-                    const input = document.querySelector(`[name=${field}]`);
                     input.parentNode.appendChild(errorDiv);
                 });
+
+                // Scroll to form
+                document.getElementById('orderForm').scrollIntoView({ behavior: 'smooth', block: 'start' });
             }
-        }
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert('An error occurred. Please try again.');
-    });
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            if (window.showNotification) {
+                window.showNotification('An error occurred. Please try again.', 'error');
+            } else {
+                alert('An error occurred. Please try again.');
+            }
+        });
 });
 </script>
 {% endblock %}

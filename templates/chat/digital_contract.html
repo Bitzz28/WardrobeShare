@@ -61,9 +61,19 @@
                     <!-- Government ID -->
                     <div>
                         <h3 class="text-lg font-medium text-gray-700 mb-2">Government ID</h3>
-                        {% if contract.id_document %}
+                        {% if contract and contract.id_document %}
                             <div class="relative group cursor-pointer" onclick="openImageModal('{{ contract.id_document.url }}', 'Government ID')">
                                 <img src="{{ contract.id_document.url }}" alt="Government ID" 
+                                     class="w-full h-32 object-cover rounded transition-transform duration-200 group-hover:scale-[1.02]">
+                                <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200">
+                                    <span class="text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-200 font-medium">
+                                        Click to view full size
+                                    </span>
+                                </div>
+                            </div>
+                        {% elif govt_verification and govt_verification.id_document %}
+                            <div class="relative group cursor-pointer" onclick="openImageModal('{{ govt_verification.id_document.url }}', 'Government ID')">
+                                <img src="{{ govt_verification.id_document.url }}" alt="Government ID" 
                                      class="w-full h-32 object-cover rounded transition-transform duration-200 group-hover:scale-[1.02]">
                                 <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200">
                                     <span class="text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-200 font-medium">
@@ -79,9 +89,19 @@
                     <!-- Selfie -->
                     <div>
                         <h3 class="text-lg font-medium text-gray-700 mb-2">Selfie</h3>
-                        {% if contract.selfie_photo %}
+                        {% if contract and contract.selfie_photo %}
                             <div class="relative group cursor-pointer" onclick="openImageModal('{{ contract.selfie_photo.url }}', 'Selfie')">
                                 <img src="{{ contract.selfie_photo.url }}" alt="Selfie" 
+                                     class="w-full h-32 object-cover rounded transition-transform duration-200 group-hover:scale-[1.02]">
+                                <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200">
+                                    <span class="text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-200 font-medium">
+                                        Click to view full size
+                                    </span>
+                                </div>
+                            </div>
+                        {% elif selfie_verification and selfie_verification.selfie %}
+                            <div class="relative group cursor-pointer" onclick="openImageModal('{{ selfie_verification.selfie.url }}', 'Selfie')">
+                                <img src="{{ selfie_verification.selfie.url }}" alt="Selfie" 
                                      class="w-full h-32 object-cover rounded transition-transform duration-200 group-hover:scale-[1.02]">
                                 <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200">
                                     <span class="text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-200 font-medium">

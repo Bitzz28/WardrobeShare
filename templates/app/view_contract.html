@@ -103,11 +103,19 @@
                         <div class="space-y-4">
                             <div>
                                 <p class="text-sm font-medium text-gray-600">Late Fees</p>
-                                <p class="mt-1 text-base text-gray-900">₹{{ contract.late_fees }} per day</p>
+                                <p class="mt-1 text-base text-gray-900">
+                                    {% if contract.late_fees %}
+                                        ₹{{ contract.late_fees }} per day
+                                    {% else %}
+                                        Not specified
+                                    {% endif %}
+                                </p>
                             </div>
                             <div>
                                 <p class="text-sm font-medium text-gray-600">Damage Penalties</p>
-                                <p class="mt-1 text-base text-gray-900">{{ contract.damage_penalties }}</p>
+                                <p class="mt-1 text-base text-gray-900">
+                                    {{ contract.damage_penalties|default:"Not specified" }}
+                                </p>
                             </div>
                         </div>
                     </div>
@@ -124,6 +132,16 @@
                         {% if contract.id_document %}
                             <div class="relative group cursor-pointer" onclick="openImageModal('{{ contract.id_document.url }}', 'Government ID')">
                                 <img src="{{ contract.id_document.url }}" alt="Government ID" 
+                                     class="w-full h-48 object-cover rounded transition-transform duration-200 group-hover:scale-[1.02]">
+                                <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200">
+                                    <span class="text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-200 font-medium">
+                                        Click to view full size
+                                    </span>
+                                </div>
+                            </div>
+                        {% elif govt_verification and govt_verification.id_document %}
+                            <div class="relative group cursor-pointer" onclick="openImageModal('{{ govt_verification.id_document.url }}', 'Government ID')">
+                                <img src="{{ govt_verification.id_document.url }}" alt="Government ID" 
                                      class="w-full h-48 object-cover rounded transition-transform duration-200 group-hover:scale-[1.02]">
                                 <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200">
                                     <span class="text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-200 font-medium">
@@ -151,6 +169,16 @@
                                     </span>
                                 </div>
                             </div>
+                        {% elif selfie_verification and selfie_verification.selfie %}
+                            <div class="relative group cursor-pointer" onclick="openImageModal('{{ selfie_verification.selfie.url }}', 'Selfie')">
+                                <img src="{{ selfie_verification.selfie.url }}" alt="Selfie" 
+                                     class="w-full h-48 object-cover rounded transition-transform duration-200 group-hover:scale-[1.02]">
+                                <div class="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all duration-200">
+                                    <span class="text-white opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0 transition-all duration-200 font-medium">
+                                        Click to view full size
+                                    </span>
+                                </div>
+                            </div>
                         {% else %}
                             <div class="flex items-center justify-center h-48 bg-gray-100 rounded">
                                 <p class="text-gray-500">No selfie photo uploaded</p>
@@ -164,17 +192,26 @@
             {% if user == contract.order.product.user %}
                 <div class="mt-8">
                     <h2 class="text-xl font-semibold mb-4">Lender Actions</h2>
-                    {% if not contract.lender_approved and contract.status != 'rejected' %}
-                        <div class="flex space-x-4">
-                            <button id="approveContract" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
-                                Approve Contract
-                            </button>
-                            <button id="rejectContract" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
-                                Reject Contract
-                            </button>
+                    {% if contract.borrower_signature and not contract.lender_approved and contract.status != 'rejected' %}
+                        <div class="flex flex-col space-y-3">
+                            <p class="text-sm text-gray-600">
+                                The borrower has signed the contract. Review the terms and choose to approve or reject.
+                            </p>
+                            <div class="flex space-x-4">
+                                <button id="approveContract" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded">
+                                    Approve Contract
+                                </button>
+                                <button id="rejectContract" class="bg-red-500 hover:bg-red-600 text-white font-bold py-2 px-4 rounded">
+                                    Reject Contract
+                                </button>
+                            </div>
                         </div>
                     {% else %}
-                        {% if contract.lender_approved %}
+                        {% if not contract.borrower_signature and contract.status != 'rejected' %}
+                            <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 mb-4">
+                                <p>Waiting for borrower to sign the contract before you can approve or reject.</p>
+                            </div>
+                        {% elif contract.lender_approved %}
                             <div class="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 mb-4">
                                 <p>You have approved this contract on {{ contract.lender_approval_date|date:"F d, Y" }}</p>
                             </div>

@@ -360,7 +360,7 @@ Borrower Details:
 - Delivery Type: Self Pickup
 
 Please log in to your account to approve or decline this request:
-http://localhost:8000/lender/orders/
+{settings.SITE_URL}/lender/orders/
 
 Best regards,
 WardrobeShare Team
@@ -403,15 +403,17 @@ def orderpayment(r,id):
     ord=Order.objects.get(id=id)
     return render(r,'payment.html',{"order":ord})
 @login_required
+@login_required
 def paysuccess(r,pay,id):
     for i in Order.objects.filter(order_id=id):
         if Post.objects.filter(id=i.product_id):
             pp=Post.objects.get(id=i.product_id)
             pp.quantity=pp.quantity-i.quantity
             pp.save()
-            pp=pp.profile
-            pp.wallet=pp.wallet+float(i.total)
-            pp.save()
+            # Funds are held in escrow, not transferred to wallet immediately
+            # pp=pp.profile
+            # pp.wallet=pp.wallet+float(i.total)
+            # pp.save()
         update_order(i.ecommerce_id,pay,True)
     return redirect('/orders')
 @login_required
@@ -435,7 +437,7 @@ def update_order(id, pay, status):
         order_summary = f"""
 Order ID: {ob.order_id}
 Order Date: {ob.order_date.strftime('%d-%b-%Y') if ob.order_date else 'N/A'}
-        """+f"Estimated Delivery Date: {ob.delivery_date.strftime('%d-%b-%Y') if ob.delivery_date else 'N/A'}" if ob.delivery_type=="Courier" else ""
+        """+f"Estimated Delivery Date: {ob.delivery_date.strftime('%d-%b-%Y') if ob.delivery_date else 'N/A'}" if ob.product.delivery_type=="Courier" else ""
         # Return Before: {(ob.delivery_date + timedelta(days=7)).strftime('%d-%b-%Y') if ob.delivery_date else 'N/A'}
 
         product_summary = f"""
@@ -448,18 +450,14 @@ Subtotal: ₹{ob.subtotal}
         """
 
         delivery_summary = f"""
-Delivery Type: {ob.delivery_type}
+Delivery Type: {ob.product.delivery_type}
 Recipient Name: {ob.full_name}
 Mobile Numbers: {ob.mobile_no}, {ob.alternate_no}
-Address: {ob.address}
-Pin Code: {ob.pin_code}
         """
 
         payment_summary = f"""
 Payment ID: {ob.payment_id if ob.payment_id else 'N/A'}
 Payment Status: {"Paid" if ob.payment_status else "Not Paid"}
-Shipping Charges: ₹{ob.shipping}
-Plaform Fee: ₹{ob.platform_fee}
 Total Amount: ₹{ob.total}
         """
 
@@ -674,10 +672,60 @@ def cancelorder(r,id):
 
     return redirect(f'/order/{o.ecommerce_id}')
 @login_required
-def returnorder(r,id):
-    o=Order.objects.get(id=id)
-    o.delivery_status="Returned"
+def approve_return(r, id):
+    """
+    Lender approves the return of the item.
+    This triggers the release of funds from Escrow:
+    - Lender receives Rental Fee (amount * quantity)
+    - Borrower receives Security Deposit (security_deposit)
+    """
+    o = get_object_or_404(Order, id=id)
+    
+    # Ensure only the lender can approve the return
+    if r.user != o.product.user:
+        messages.error(r, 'Only the lender can approve the return.')
+        return redirect(f'/order/{o.ecommerce_id}')
+        
+    if o.funds_released:
+        messages.warning(r, 'Funds have already been released for this order.')
+        return redirect(f'/order/{o.ecommerce_id}')
+
+    # Update order status
+    o.delivery_status = "Returned"
+    o.funds_released = True
     o.save()
+
+    # 1. Credit Lender Wallet (Rental Fee)
+    lender_profile = Profile.objects.get(user=o.product.user)
+    rental_fee = o.subtotal  # This is price * quantity
+    lender_profile.wallet += rental_fee
+    lender_profile.save()
+
+    # 2. Credit Borrower Wallet (Security Deposit)
+    borrower_profile = Profile.objects.get(user=o.user)
+    security_deposit = o.security_deposit
+    borrower_profile.wallet += security_deposit
+    borrower_profile.save()
+    
+    # Create notification for Borrower
+    create_notification(
+        user=o.user,
+        notification_type='order_status',
+        title='Return Approved & Funds Released',
+        message=f'Your return for {o.product.title} has been approved. Security deposit of ₹{security_deposit} has been refunded to your wallet.',
+        link=f'/order/{o.ecommerce_id}'
+    )
+
+    # Create notification for Lender
+    create_notification(
+        user=o.product.user,
+        notification_type='order_status',
+        title='Funds Received',
+        message=f'Rental fee of ₹{rental_fee} for {o.product.title} has been credited to your wallet.',
+        link=f'/order/{o.ecommerce_id}'
+    )
+
+    messages.success(r, f'Return approved. ₹{rental_fee} credited to your wallet. ₹{security_deposit} refunded to borrower.')
     return redirect(f'/order/{o.ecommerce_id}')
 @login_required
 def user_orders(r):
@@ -899,8 +947,8 @@ Order Details:
 - Rental Period: {order.rent_start.strftime('%d-%m-%Y')} to {order.rent_end.strftime('%d-%m-%Y')}
 - Total Amount: ₹{order.total}
 
-{'Visit your order page to view details: http://localhost:8000/order/' + str(order.ecommerce_id) if action == 'approve' else ''}
-{'Chat with the lender: http://localhost:8000/chat/' + str(chat_room.id) if action == 'approve' else ''}
+{'Visit your order page to view details: ' + settings.SITE_URL + '/order/' + str(order.ecommerce_id) if action == 'approve' else ''}
+{'Chat with the lender: ' + settings.SITE_URL + '/chat/' + str(chat_room.id) if action == 'approve' else ''}
 
 Best regards,
 WardrobeShare Team
@@ -1514,12 +1562,31 @@ class ViewContractView(View):
             if request.user != contract.order.product.user and request.user != contract.order.user:
                 return HttpResponseForbidden("You don't have permission to view this contract")
             
+            # Get latest verification images related to this order's chat room
+            chat_room = ChatRoom.objects.filter(order=contract.order).first()
+            govt_verification = None
+            selfie_verification = None
+            if chat_room:
+                govt_verification = VerificationRequest.objects.filter(
+                    chat_room=chat_room,
+                    type='govt_id',
+                    id_document__isnull=False
+                ).order_by('-created_at').first()
+                
+                selfie_verification = VerificationRequest.objects.filter(
+                    chat_room=chat_room,
+                    type='selfie',
+                    selfie__isnull=False
+                ).order_by('-created_at').first()
+            
             context = {
                 'contract': contract,
                 'order': contract.order,
                 'product': contract.order.product,
                 'lender': contract.order.product.user,
-                'borrower': contract.order.user
+                'borrower': contract.order.user,
+                'govt_verification': govt_verification,
+                'selfie_verification': selfie_verification,
             }
             
             return render(request, 'app/view_contract.html', context)
@@ -1902,7 +1969,8 @@ def handle_request(request, order_id, action):
     order = get_object_or_404(Order, id=order_id, product__user=request.user)
     
     if action == 'approve':
-        order.rental_status = 'active'
+        # Mark rental as approved so it shows up in active chats and dashboards
+        order.rental_status = 'approved'
         order.save()
         # Create chat room for the order
         chat_room, created = ChatRoom.objects.get_or_create(
@@ -1958,10 +2026,25 @@ def digital_contract(request, chat_room_id):
         order = chat_room.order
         contract = DigitalContract.objects.filter(order=order).first()
         
+        # Get latest verification files for this chat room
+        govt_verification = VerificationRequest.objects.filter(
+            chat_room=chat_room,
+            type='govt_id',
+            id_document__isnull=False
+        ).order_by('-created_at').first()
+        
+        selfie_verification = VerificationRequest.objects.filter(
+            chat_room=chat_room,
+            type='selfie',
+            selfie__isnull=False
+        ).order_by('-created_at').first()
+        
         context = {
             'chat_room': chat_room,
             'order': order,
             'contract': contract,
+            'govt_verification': govt_verification,
+            'selfie_verification': selfie_verification,
             'today': timezone.now(),
         }
         
@@ -1993,14 +2076,14 @@ def send_contract(request):
                 }
             )
             
-            # Update contract details
-            contract.rent_start = request.POST.get('start_date')
-            contract.rent_end = request.POST.get('end_date')
-            contract.rental_price = request.POST.get('rental_price')
-            contract.security_deposit = request.POST.get('security_deposit')
-            contract.late_fees = request.POST.get('late_fees')
-            contract.damage_penalties = request.POST.get('damage_penalties')
-            contract.additional_terms = request.POST.get('additional_terms')
+            # Update contract details (persisted on the contract itself)
+            contract.rent_start = request.POST.get('start_date') or None
+            contract.rent_end = request.POST.get('end_date') or None
+            contract.rental_price = request.POST.get('rental_price') or None
+            contract.contract_security_deposit = request.POST.get('security_deposit') or None
+            contract.late_fees = request.POST.get('late_fees') or None
+            contract.damage_penalties = request.POST.get('damage_penalties') or ''
+            contract.additional_terms = request.POST.get('additional_terms') or ''
             contract.status = 'pending'  # Set status to pending for borrower acceptance
             contract.save()
             
